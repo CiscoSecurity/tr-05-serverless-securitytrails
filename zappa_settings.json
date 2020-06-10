@@ -7,7 +7,7 @@
         "log_level": "INFO",
         "manage_roles": false,
         "profile_name": "serverless",
-        "project_name": "tr-securitytrails-dnsdb-relay",
+        "project_name": "tr-securitytrails-relay",
         "role_name": "tr-serverless-relay-ZappaLambdaExecutionRole",
         "runtime": "python3.7",
         "s3_bucket": "zappa-tr-securitytrails-relay"

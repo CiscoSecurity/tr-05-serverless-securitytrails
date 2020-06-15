@@ -1,7 +1,6 @@
-import requests
 from flask import Blueprint, current_app
 
-from api.errors import UnexpectedSecurityTrailsResponseError
+from api.client import SecurityTrailsClient
 from api.utils import jsonify_data, get_key
 
 health_api = Blueprint('health', __name__)
@@ -11,25 +10,10 @@ health_api = Blueprint('health', __name__)
 def health():
     key = get_key()
 
-    url = join_url(current_app.config['API_URL'], 'ping')
+    client = SecurityTrailsClient(current_app.config['API_URL'],
+                                  key,
+                                  current_app.config['USER_AGENT'])
 
-    headers = {
-        'Accept': 'application/json',
-        'APIKEY': key,
-        'User-Agent': current_app.config['USER_AGENT']
+    _ = client.ping()
 
-    }
-
-    response = requests.get(url, headers=headers)
-
-    if response.ok:
-        return jsonify_data({'status': 'ok'})
-
-    raise UnexpectedSecurityTrailsResponseError(response)
-
-
-def join_url(base, *parts):
-    return '/'.join(
-        [base.rstrip('/')] +
-        [part.strip('/') for part in parts]
-    )
+    return jsonify_data({'status': 'ok'})

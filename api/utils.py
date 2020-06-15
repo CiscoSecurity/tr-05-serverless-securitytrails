@@ -1,7 +1,11 @@
+import json
+from typing import Optional
+
 from authlib.jose import jwt
 from authlib.jose.errors import JoseError
-from flask import request, current_app, jsonify
-from werkzeug.exceptions import Forbidden, BadRequest
+from flask import request, current_app, jsonify, g
+
+from api.errors import InvalidArgumentError, InvalidJWTError
 
 
 def get_jwt():
@@ -19,7 +23,11 @@ def get_jwt():
         assert scheme.lower() == 'bearer'
         return jwt.decode(token, current_app.config['SECRET_KEY'])
     except (KeyError, ValueError, AssertionError, JoseError):
-        raise Forbidden('Invalid Authorization Bearer JWT.')
+        raise InvalidJWTError
+
+
+def get_key() -> Optional[str]:
+    return get_jwt().get('key')
 
 
 def get_json(schema):
@@ -37,10 +45,28 @@ def get_json(schema):
     message = schema.validate(data)
 
     if message:
-        raise BadRequest(message)
+        raise InvalidArgumentError(
+            f'Invalid JSON payload received. {json.dumps(message)}'
+        )
 
     return data
 
 
+def format_docs(docs):
+    return {'count': len(docs), 'docs': docs}
+
+
 def jsonify_data(data):
     return jsonify({'data': data})
+
+
+def jsonify_result():
+    result = {'data': {}}
+
+    if g.get('sightings'):
+        result['data']['sightings'] = format_docs(g.sightings)
+
+    if g.get('errors'):
+        result['errors'] = g.errors
+
+    return jsonify(result)

@@ -1,8 +1,12 @@
+import json
 from datetime import datetime
+from http import HTTPStatus
+from unittest.mock import MagicMock
 
 from authlib.jose import jwt
 from pytest import fixture
 
+from api.errors import PERMISSION_DENIED, INVALID_ARGUMENT
 from app import app
 
 
@@ -53,3 +57,99 @@ def invalid_jwt(valid_jwt):
     payload = jwt_encode(payload)
 
     return '.'.join([header, payload, signature])
+
+
+def securitytrails_api_response_mock(status_code, payload=None):
+    def iter_lines():
+        for r in payload:
+            yield r
+
+    mock_response = MagicMock()
+
+    mock_response.status = status_code
+    mock_response.ok = status_code == HTTPStatus.OK
+
+    payload = payload or []
+    payload = (json.dumps(r) for r in payload)
+
+    mock_response.iter_lines = iter_lines
+
+    return mock_response
+
+
+def securitytrails_api_error_mock(status_code, text=None):
+    mock_response = MagicMock()
+
+    mock_response.status_code = status_code
+    mock_response.ok = status_code == HTTPStatus.OK
+
+    mock_response.text = text
+
+    return mock_response
+
+
+def expected_payload(r, body):
+    if r.endswith('/deliberate/observables'):
+        return {'data': {}}
+
+    if r.endswith('/refer/observables'):
+        return {'data': []}
+
+    return body
+
+
+@fixture(scope='function')
+def securitytrails_ping_ok():
+    return securitytrails_api_response_mock(
+        HTTPStatus.OK, payload=[{"success": True}]
+    )
+
+
+@fixture(scope='session')
+def securitytrails_response_unauthorized_creds(secret_key):
+    return securitytrails_api_error_mock(
+        HTTPStatus.FORBIDDEN,
+        'Error: Bad API key'
+    )
+
+
+@fixture(scope='module')
+def invalid_jwt_expected_payload(route):
+    return expected_payload(route, {
+        'errors': [
+            {'code': PERMISSION_DENIED,
+             'message': 'Invalid Authorization Bearer JWT.',
+             'type': 'fatal'}
+        ],
+        'data': {}
+    })
+
+
+@fixture(scope='module')
+def invalid_json_expected_payload(route):
+    return expected_payload(
+        route,
+        {'errors': [
+            {'code': INVALID_ARGUMENT,
+             'message':
+                 'Invalid JSON payload received. '
+                 '{"0": {"value": ["Missing data for required field."]}}',
+             'type': 'fatal'}],
+            'data': {}}
+    )
+
+
+@fixture(scope='module')
+def unauthorized_creds_expected_payload(route):
+    return expected_payload(
+        route,
+        {
+            'errors': [
+                {'code': PERMISSION_DENIED,
+                 'message': ("Unexpected response from SecurityTrails: "
+                             "Error: Bad API key"),
+                 'type': 'fatal'}
+            ],
+            'data': {}
+        }
+    )

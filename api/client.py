@@ -3,7 +3,7 @@ from http import HTTPStatus
 import requests
 
 from api.errors import (
-    UnexpectedSecurityTrailsResponseError
+    CriticalSecurityTrailsResponseError
 )
 from api.utils import join_url
 
@@ -36,7 +36,7 @@ class SecurityTrailsClient:
         if response.status_code in NOT_CRITICAL_ERRORS:
             return []
 
-        raise UnexpectedSecurityTrailsResponseError(response)
+        raise CriticalSecurityTrailsResponseError(response)
 
     def ping(self):
         """

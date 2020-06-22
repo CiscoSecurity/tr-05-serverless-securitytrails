@@ -38,7 +38,7 @@ def test_health_call_with_unauthorized_creds_failure(
         securitytrails_response_unauthorized_creds,
         unauthorized_creds_expected_payload,
 ):
-    with patch('requests.get') as get_mock:
+    with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_response_unauthorized_creds
         response = client.post(
             route, headers=headers(valid_jwt)
@@ -49,7 +49,7 @@ def test_health_call_with_unauthorized_creds_failure(
 
 
 def test_health_call_success(route, client, valid_jwt, securitytrails_ping_ok):
-    with patch('requests.get') as get_mock:
+    with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_ping_ok
         response = client.post(route, headers=headers(valid_jwt))
 

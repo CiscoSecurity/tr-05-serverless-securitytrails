@@ -8,7 +8,6 @@ from api.utils import get_json, jsonify_data, get_key
 
 enrich_api = Blueprint('enrich', __name__)
 
-
 get_observables = partial(get_json, schema=ObservableSchema(many=True))
 
 
@@ -24,13 +23,15 @@ def observe_observables():
 
     client = SecurityTrailsClient(current_app.config['API_URL'],
                                   key,
-                                  current_app.config['USER_AGENT'])
+                                  current_app.config['USER_AGENT'],
+                                  current_app.config['NUMBER_OF_PAGES'])
 
     data = []
     for x in observables:
-        x_data = client.get_data(x)
-        if x_data:
-            data.append(x_data)
+        observable_data = client.get_data(x)
+
+        if observable_data:
+            data.append(observable_data)
 
     return jsonify_data(data)
 

@@ -1,12 +1,12 @@
 from functools import partial
 
-from flask import Blueprint
+from flask import Blueprint, current_app
 
+from api.client import SecurityTrailsClient
 from api.schemas import ObservableSchema
-from api.utils import get_json, get_jwt, jsonify_data
+from api.utils import get_json, jsonify_data, get_key
 
 enrich_api = Blueprint('enrich', __name__)
-
 
 get_observables = partial(get_json, schema=ObservableSchema(many=True))
 
@@ -18,9 +18,22 @@ def deliberate_observables():
 
 @enrich_api.route('/observe/observables', methods=['POST'])
 def observe_observables():
-    _ = get_jwt()
-    _ = get_observables()
-    return jsonify_data({})
+    key = get_key()
+    observables = get_observables()
+
+    client = SecurityTrailsClient(current_app.config['API_URL'],
+                                  key,
+                                  current_app.config['USER_AGENT'],
+                                  current_app.config['NUMBER_OF_PAGES'])
+
+    data = []
+    for x in observables:
+        observable_data = client.get_data(x)
+
+        if observable_data:
+            data.append(observable_data)
+
+    return jsonify_data(data)
 
 
 @enrich_api.route('/refer/observables', methods=['POST'])

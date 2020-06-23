@@ -39,7 +39,7 @@ class InvalidArgumentError(TRFormattedError):
         )
 
 
-class UnexpectedSecurityTrailsResponseError(TRFormattedError):
+class CriticalSecurityTrailsResponseError(TRFormattedError):
     def __init__(self, response):
         """
         https://docs.securitytrails.com/docs/errors

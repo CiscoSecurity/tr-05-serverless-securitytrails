@@ -70,3 +70,10 @@ def jsonify_result():
         result['errors'] = g.errors
 
     return jsonify(result)
+
+
+def join_url(base, *parts):
+    return '/'.join(
+        [base.rstrip('/')] +
+        [part.strip('/') for part in parts]
+    )

@@ -1,0 +1,145 @@
+from abc import ABCMeta, abstractmethod
+from datetime import datetime
+from uuid import uuid4
+
+from api.utils import all_subclasses
+
+CTIM_DEFAULTS = {
+    'schema_version': '1.0.17',
+}
+
+RESOLVED_TO = 'Resolved_To'
+
+
+class Mapping(metaclass=ABCMeta):
+
+    def __init__(self, observable):
+        self.observable = observable
+
+    @classmethod
+    def for_(cls, observable):
+        """Return an instance of `Mapping` for the specified type."""
+
+        for subcls in all_subclasses(Mapping):
+            if subcls.type() == observable['type']:
+                return subcls(observable)
+
+        return None
+
+    @classmethod
+    @abstractmethod
+    def type(cls):
+        """Return the observable type that the mapping is able to process."""
+
+    @staticmethod
+    @abstractmethod
+    def _extract_related(record):
+        """
+        Extract the list of items an observable is related to
+        according to SecurityTrails data record.
+
+        """
+
+    @abstractmethod
+    def _resolved_to(self, related):
+        """
+        Return TR resolved_to relation
+        depending on an observable and related types.
+
+        """
+
+    @abstractmethod
+    def _description(self, *args):
+        """Return description field depending on observable type."""
+
+    def _sighting(self, count, description):
+        result = {
+            **CTIM_DEFAULTS,
+            'id': f'transient:sighting-{uuid4()}',
+            'type': 'sighting',
+            'source': 'SecurityTrails',
+            'title': 'Found in SecurityTrails',
+            'confidence': 'High',
+            'internal': False,
+            'count': count,
+            'observables': [self.observable],
+            'observed_time': {
+                'start_time':
+                    f'{datetime.now().isoformat(timespec="seconds")}Z',
+            },
+            'description': description,
+        }
+
+        return result
+
+    def extract_sightings(self, lookup_data):
+        related = []
+        for r in lookup_data['records']:
+            related.extend(self._extract_related(r))
+        related = sorted(set(related))
+
+        count = 0  # ToDo
+        if related:
+            description = self._description(lookup_data.get('type'))
+            sighting = self._sighting(count, description)
+            sighting['relations'] = [self._resolved_to(r) for r in related]
+            return [sighting]
+        return []
+
+    @staticmethod
+    def observable_relation(relation_type, source, related):
+        return {
+            "origin": "SecurityTrails Enrichment Module",
+            "relation": relation_type,
+            "source": source,
+            "related": related
+        }
+
+
+class Domain(Mapping):
+    @classmethod
+    def type(cls):
+        return 'domain'
+
+    def _description(self, related_type):
+        related_type = f'IP{related_type[-2:]}'
+        return (f'{related_type} addresses that '
+                f'{self.observable["value"]} resolves to')
+
+    def _extract_related(self, record):
+        return [v.get('ip') or v.get('ipv6') for v in record['values']]
+
+    def _resolved_to(self, ip):
+        return self.observable_relation(
+            RESOLVED_TO,
+            source=self.observable,
+            related={
+                'value': ip,
+                'type': 'ipv6' if ':' in ip else 'ip'
+            }
+        )
+
+
+class IP(Mapping):
+    @classmethod
+    def type(cls):
+        return 'ip'
+
+    def _description(self, *args):
+        return f'Domains that have resolved to {self.observable["value"]}'
+
+    def _extract_related(self, record):
+        return [record['hostname']]
+
+    def _resolved_to(self, domain):
+        return self.observable_relation(
+            RESOLVED_TO,
+            source={'value': domain, 'type': 'domain'},
+            related=self.observable
+        )
+
+
+class IPV6(IP):
+    @classmethod
+    def type(cls):
+        return 'ipv6'

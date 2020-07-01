@@ -1,10 +1,11 @@
 from functools import partial
 
-from flask import Blueprint, current_app
+from flask import Blueprint, current_app, g
 
 from api.client import SecurityTrailsClient
+from api.mappings import Mapping
 from api.schemas import ObservableSchema
-from api.utils import get_json, jsonify_data, get_key
+from api.utils import get_json, jsonify_data, get_key, jsonify_result
 
 enrich_api = Blueprint('enrich', __name__)
 
@@ -25,15 +26,19 @@ def observe_observables():
                                   key,
                                   current_app.config['USER_AGENT'],
                                   current_app.config['NUMBER_OF_PAGES'])
+    g.sightings = []
 
-    data = []
     for x in observables:
-        observable_data = client.get_data(x)
+        mapping = Mapping.for_(x)
 
-        if observable_data:
-            data.append(observable_data)
+        if mapping:
+            client_data = client.get_data(x)
+            for record in client_data:
+                g.sightings.extend(
+                    mapping.extract_sightings(record)
+                )
 
-    return jsonify_data(data)
+    return jsonify_result()
 
 
 @enrich_api.route('/refer/observables', methods=['POST'])

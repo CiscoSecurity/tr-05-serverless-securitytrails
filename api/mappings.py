@@ -49,7 +49,9 @@ class Mapping(metaclass=ABCMeta):
         """Return description field depending on observable type."""
 
     def _sighting(self, count, description):
-        result = {
+        now = f'{datetime.now().isoformat(timespec="seconds")}Z'
+
+        return {
             **CTIM_DEFAULTS,
             'id': f'transient:sighting-{uuid4()}',
             'type': 'sighting',
@@ -60,13 +62,11 @@ class Mapping(metaclass=ABCMeta):
             'count': count,
             'observables': [self.observable],
             'observed_time': {
-                'start_time':
-                    f'{datetime.now().isoformat(timespec="seconds")}Z',
+                'start_time': now,
+                'end_time': now,
             },
             'description': description,
         }
-
-        return result
 
     def extract_sighting(self, st_data):
         related, count = self._aggregate(st_data)
@@ -101,18 +101,13 @@ class Domain(Mapping):
     @staticmethod
     def _aggregate(st_data):
         related = []
-        count = 0
-
         for r in st_data['records']:
             related.extend(
                 v.get('ip') or v.get('ipv6') or 0 for v in r['values']
             )
-            count += sum(
-                (v.get('ip_count') or v.get('ipv6_count') or 0
-                 for v in r['values'])
-            )
 
-        return set(related), count
+        related = set(related)
+        return related, len(related)
 
     def _resolved_to(self, ip):
         return self.observable_relation(

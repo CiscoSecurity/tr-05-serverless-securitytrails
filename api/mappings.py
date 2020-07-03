@@ -33,12 +33,8 @@ class Mapping(metaclass=ABCMeta):
 
     @staticmethod
     @abstractmethod
-    def _extract_related(record):
-        """
-        Extract the list of items an observable is related to
-        according to SecurityTrails data record.
-
-        """
+    def _aggregate(data):
+        """Extract unique related observables and sightings count."""
 
     @abstractmethod
     def _resolved_to(self, related):
@@ -72,19 +68,15 @@ class Mapping(metaclass=ABCMeta):
 
         return result
 
-    def extract_sightings(self, lookup_data):
-        related = []
-        for r in lookup_data['records']:
-            related.extend(self._extract_related(r))
-        related = sorted(set(related))
+    def extract_sighting(self, st_data):
+        related, count = self._aggregate(st_data)
 
-        count = 0  # ToDo
         if related:
-            description = self._description(lookup_data.get('type'))
+            related = sorted(related)
+            description = self._description(st_data.get('type'))
             sighting = self._sighting(count, description)
             sighting['relations'] = [self._resolved_to(r) for r in related]
-            return [sighting]
-        return []
+            return sighting
 
     @staticmethod
     def observable_relation(relation_type, source, related):
@@ -106,8 +98,21 @@ class Domain(Mapping):
         return (f'{related_type} addresses that '
                 f'{self.observable["value"]} resolves to')
 
-    def _extract_related(self, record):
-        return [v.get('ip') or v.get('ipv6') for v in record['values']]
+    @staticmethod
+    def _aggregate(st_data):
+        related = []
+        count = 0
+
+        for r in st_data['records']:
+            related.extend(
+                v.get('ip') or v.get('ipv6') or 0 for v in r['values']
+            )
+            count += sum(
+                (v.get('ip_count') or v.get('ipv6_count') or 0
+                 for v in r['values'])
+            )
+
+        return set(related), count
 
     def _resolved_to(self, ip):
         return self.observable_relation(
@@ -128,8 +133,11 @@ class IP(Mapping):
     def _description(self, *args):
         return f'Domains that have resolved to {self.observable["value"]}'
 
-    def _extract_related(self, record):
-        return [record['hostname']]
+    @staticmethod
+    def _aggregate(st_data):
+        related = [r['hostname'] for r in st_data['records']]
+        count = st_data['record_count']
+        return set(related), count
 
     def _resolved_to(self, domain):
         return self.observable_relation(

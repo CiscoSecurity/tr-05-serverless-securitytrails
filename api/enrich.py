@@ -34,9 +34,9 @@ def observe_observables():
         if mapping:
             client_data = client.get_data(x)
             for record in client_data:
-                g.sightings.extend(
-                    mapping.extract_sightings(record)
-                )
+                s = mapping.extract_sighting(record)
+                if s:
+                    g.sightings.append(s)
 
     return jsonify_result()
 

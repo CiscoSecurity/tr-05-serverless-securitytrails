@@ -65,7 +65,7 @@ class UnavailableResultsError(TRFormattedError):
         super().__init__(
             'unavailable results',
             f'There are {number_of_pages_left} pages left unprocessed '
-            f'for {observable} because of SecurityTrails limitations. '
+            f'for {observable}. '
             f'Please contact support@securitytrails.com to download the data',
             type_='warning'
         )

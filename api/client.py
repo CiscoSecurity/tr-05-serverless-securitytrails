@@ -92,14 +92,11 @@ class SecurityTrailsClient:
             max_page = max_possible_page(data)
             total_page = total_pages(data)
 
-            if self.number_of_pages >= max_page and max_page < total_page:
-                add_error(
-                    UnavailableResultsError(observable['value'],
-                                            total_page - max_page)
-                )
-
+            pages_left = 0
             if self.number_of_pages < max_page:
                 max_page = self.number_of_pages
+            elif max_page < total_page:
+                pages_left = total_page - max_page
 
             for page in range(2, max_page + 1):
                 r = endpoint(observable, *args, page=page, **kwargs)
@@ -107,6 +104,11 @@ class SecurityTrailsClient:
                     data['records'].extend(r['records'])
                 else:
                     break
+
+            if pages_left:
+                add_error(
+                    UnavailableResultsError(observable['value'], pages_left)
+                )
 
         return data
 

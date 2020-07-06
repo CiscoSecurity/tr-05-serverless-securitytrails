@@ -1,9 +1,13 @@
+import sys
 from http import HTTPStatus
 
 import requests
 
-from api.errors import CriticalSecurityTrailsResponseError
-from api.utils import join_url
+from api.errors import (
+    CriticalSecurityTrailsResponseError,
+    UnavailableResultsError
+)
+from api.utils import join_url, add_error
 
 NOT_CRITICAL_ERRORS = (
     HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND, HTTPStatus.NOT_ACCEPTABLE
@@ -24,7 +28,9 @@ class SecurityTrailsClient:
             'APIKEY': api_key,
             'User-Agent': user_agent
         }
-        self.number_of_pages = number_of_pages
+        self.number_of_pages = (
+            sys.maxsize if number_of_pages == 0 else number_of_pages
+        )
 
     def ping(self):
         """
@@ -69,21 +75,30 @@ class SecurityTrailsClient:
         }
         return self._request('domains/list', 'POST', body, page=page)
 
-    def _need_all_pages(self):
-        return self.number_of_pages == 0
-
     def _get_pages(self, observable, endpoint, *args, **kwargs):
-        def max_possible_page(data):
-            return (data.get('pages')
-                    or data.get('meta', {}).get('max_page')
+        def max_possible_page(response):
+            return (response.get('pages')
+                    or response.get('meta', {}).get('max_page')
+                    or 0)
+
+        def total_pages(response):
+            return (response.get('pages')
+                    or response.get('meta', {}).get('total_pages')
                     or 0)
 
         data = endpoint(observable, *args, **kwargs)
 
         if data and self.number_of_pages != 1:
-
             max_page = max_possible_page(data)
-            if self.number_of_pages < max_page and not self._need_all_pages():
+            total_page = total_pages(data)
+
+            if self.number_of_pages >= max_page and max_page < total_page:
+                add_error(
+                    UnavailableResultsError(observable['value'],
+                                            total_page - max_page)
+                )
+
+            if self.number_of_pages < max_page:
                 max_page = self.number_of_pages
 
             for page in range(2, max_page + 1):

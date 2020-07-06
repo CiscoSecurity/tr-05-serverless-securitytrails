@@ -4,7 +4,7 @@ from api.enrich import enrich_api
 from api.errors import TRFormattedError
 from api.health import health_api
 from api.respond import respond_api
-from api.utils import jsonify_result
+from api.utils import jsonify_result, add_error
 
 app = Flask(__name__)
 
@@ -18,7 +18,7 @@ app.register_blueprint(respond_api)
 
 @app.errorhandler(TRFormattedError)
 def handle_tr_formatted_error(error):
-    g.errors = [error.json]
+    add_error(error)
     return jsonify_result()
 
 

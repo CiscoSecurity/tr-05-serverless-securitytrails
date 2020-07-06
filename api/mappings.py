@@ -66,6 +66,7 @@ class Mapping(metaclass=ABCMeta):
                 'end_time': now,
             },
             'description': description,
+            'source_uri': ''  # ToDo
         }
 
     def extract_sighting(self, st_data):

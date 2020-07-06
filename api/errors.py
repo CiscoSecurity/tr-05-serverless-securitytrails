@@ -58,3 +58,14 @@ class CriticalSecurityTrailsResponseError(TRFormattedError):
             status_code_map.get(response.status_code),
             f'Unexpected response from SecurityTrails: {response.text}'
         )
+
+
+class UnavailableResultsError(TRFormattedError):
+    def __init__(self, observable, number_of_pages_left):
+        super().__init__(
+            'unavailable results',
+            f'There are {number_of_pages_left} pages left unprocessed '
+            f'for {observable} because of SecurityTrails limitations. '
+            f'Please contact support@securitytrails.com to download the data',
+            type_='warning'
+        )

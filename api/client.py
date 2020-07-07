@@ -5,7 +5,7 @@ import requests
 
 from api.errors import (
     CriticalSecurityTrailsResponseError,
-    UnavailableResultsError
+    UnprocessedPagesWarning
 )
 from api.utils import join_url, add_error
 
@@ -28,6 +28,8 @@ class SecurityTrailsClient:
             'APIKEY': api_key,
             'User-Agent': user_agent
         }
+
+        # Value 0 means that user need all pages.
         self.number_of_pages = (
             sys.maxsize if number_of_pages == 0 else number_of_pages
         )
@@ -76,27 +78,22 @@ class SecurityTrailsClient:
         return self._request('domains/list', 'POST', body, page=page)
 
     def _get_pages(self, observable, endpoint, *args, **kwargs):
-        def max_possible_page(response):
+        def extract(response, meta_field):
             return (response.get('pages')
-                    or response.get('meta', {}).get('max_page')
-                    or 0)
-
-        def total_pages(response):
-            return (response.get('pages')
-                    or response.get('meta', {}).get('total_pages')
+                    or response.get('meta', {}).get(meta_field)
                     or 0)
 
         data = endpoint(observable, *args, **kwargs)
 
-        if data and self.number_of_pages != 1:
-            max_page = max_possible_page(data)
-            total_page = total_pages(data)
+        if data and self.number_of_pages > 1:
+            max_page = extract(data, 'max_page')
+            total_pages = extract(data, 'total_pages')
 
             pages_left = 0
             if self.number_of_pages < max_page:
                 max_page = self.number_of_pages
-            elif max_page < total_page:
-                pages_left = total_page - max_page
+            elif max_page < total_pages:
+                pages_left = total_pages - max_page
 
             for page in range(2, max_page + 1):
                 r = endpoint(observable, *args, page=page, **kwargs)
@@ -107,7 +104,7 @@ class SecurityTrailsClient:
 
             if pages_left:
                 add_error(
-                    UnavailableResultsError(observable['value'], pages_left)
+                    UnprocessedPagesWarning(observable['value'], pages_left)
                 )
 
         return data

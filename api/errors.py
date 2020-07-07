@@ -60,12 +60,12 @@ class CriticalSecurityTrailsResponseError(TRFormattedError):
         )
 
 
-class UnavailableResultsError(TRFormattedError):
+class UnprocessedPagesWarning(TRFormattedError):
     def __init__(self, observable, number_of_pages_left):
         super().__init__(
-            'unavailable results',
-            f'There are {number_of_pages_left} pages left unprocessed '
+            'unprocessed pages',
+            f'There are {number_of_pages_left} page(s) left unprocessed'
             f'for {observable}. '
-            f'Please contact support@securitytrails.com to download the data',
+            'Please contact support@securitytrails.com to download the data',
             type_='warning'
         )

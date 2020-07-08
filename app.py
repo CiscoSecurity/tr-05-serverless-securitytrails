@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, g
+from flask import Flask, jsonify
 
 from api.enrich import enrich_api
 from api.errors import TRFormattedError

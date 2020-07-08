@@ -70,6 +70,9 @@ class Mapping(metaclass=ABCMeta):
         }
 
     def extract_sighting(self, st_data):
+        if not st_data.get('records'):
+            return
+
         related, count = self._aggregate(st_data)
 
         if related:

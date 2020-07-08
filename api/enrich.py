@@ -28,15 +28,15 @@ def observe_observables():
                                   current_app.config['NUMBER_OF_PAGES'])
     g.sightings = []
 
-    for x in observables:
-        mapping = Mapping.for_(x)
+    for observable in observables:
+        mapping = Mapping.for_(observable)
 
         if mapping:
-            client_data = client.get_data(x)
+            client_data = client.get_data(observable)
             for record in client_data:
-                s = mapping.extract_sighting(record)
-                if s:
-                    g.sightings.append(s)
+                sighting = mapping.extract_sighting(record)
+                if sighting:
+                    g.sightings.append(sighting)
 
     return jsonify_result()
 

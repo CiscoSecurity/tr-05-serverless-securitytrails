@@ -121,6 +121,6 @@ class SecurityTrailsClient:
             return response.json()
 
         if response.status_code in NOT_CRITICAL_ERRORS:
-            return []
+            return {}
 
         raise CriticalSecurityTrailsResponseError(response)

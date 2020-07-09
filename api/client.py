@@ -48,10 +48,10 @@ class SecurityTrailsClient:
                     self._get_pages(observable, self._history, type_='aaaa'))
 
         if observable_type in (IP, IPV6):
-            return self._get_pages(observable, self._domain_list),
+            return (self._get_pages(observable, self._domain_list),)
 
         else:
-            return {}
+            return ()
 
     def _history(self, observable, type_, page=1):
         """

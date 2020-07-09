@@ -55,12 +55,12 @@ def refer_observables():
 
     data = [
         {
-            'id': 'ref-securitytrails-search-{type}-{value}'.format(
-                **observable),
+            'id': (
+                'ref-securitytrails-search-{type}-{value}'.format(**observable)
+            ),
             'title': f'Search for this {type_of(observable)}',
             'description': (
-                f'Lookup this {type_of(observable)} '
-                'on SecurityTrails'
+                f'Lookup this {type_of(observable)} on SecurityTrails'
             ),
             'url': SecurityTrailsClient.refer_link(ui_url, observable),
             'categories': ['Search', 'SecurityTrails'],

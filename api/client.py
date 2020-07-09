@@ -1,9 +1,13 @@
+import sys
 from http import HTTPStatus
 
 import requests
 
-from api.errors import CriticalSecurityTrailsResponseError
-from api.utils import join_url
+from api.errors import (
+    CriticalSecurityTrailsResponseError,
+    UnprocessedPagesWarning
+)
+from api.utils import join_url, add_error
 
 NOT_CRITICAL_ERRORS = (
     HTTPStatus.BAD_REQUEST, HTTPStatus.NOT_FOUND, HTTPStatus.NOT_ACCEPTABLE
@@ -24,7 +28,11 @@ class SecurityTrailsClient:
             'APIKEY': api_key,
             'User-Agent': user_agent
         }
-        self.number_of_pages = number_of_pages
+
+        # Value 0 means that user need all pages.
+        self.number_of_pages = (
+            sys.maxsize if number_of_pages == 0 else number_of_pages
+        )
 
     def ping(self):
         """
@@ -40,10 +48,10 @@ class SecurityTrailsClient:
                     self._get_pages(observable, self._history, type_='aaaa'))
 
         if observable_type in (IP, IPV6):
-            return self._get_pages(observable, self._domain_list)
+            return (self._get_pages(observable, self._domain_list),)
 
         else:
-            return {}
+            return ()
 
     def _history(self, observable, type_, page=1):
         """
@@ -69,22 +77,23 @@ class SecurityTrailsClient:
         }
         return self._request('domains/list', 'POST', body, page=page)
 
-    def _need_all_pages(self):
-        return self.number_of_pages == 0
-
     def _get_pages(self, observable, endpoint, *args, **kwargs):
-        def max_possible_page(data):
-            return (data.get('pages')
-                    or data.get('meta', {}).get('max_page')
+        def extract(response, meta_field):
+            return (response.get('pages')
+                    or response.get('meta', {}).get(meta_field)
                     or 0)
 
         data = endpoint(observable, *args, **kwargs)
 
-        if data and self.number_of_pages != 1:
+        if data and self.number_of_pages > 1:
+            max_page = extract(data, 'max_page')
+            total_pages = extract(data, 'total_pages')
 
-            max_page = max_possible_page(data)
-            if self.number_of_pages < max_page and not self._need_all_pages():
+            pages_left = 0
+            if self.number_of_pages < max_page:
                 max_page = self.number_of_pages
+            elif max_page < total_pages:
+                pages_left = total_pages - max_page
 
             for page in range(2, max_page + 1):
                 r = endpoint(observable, *args, page=page, **kwargs)
@@ -92,6 +101,11 @@ class SecurityTrailsClient:
                     data['records'].extend(r['records'])
                 else:
                     break
+
+            if pages_left:
+                add_error(
+                    UnprocessedPagesWarning(observable['value'], pages_left)
+                )
 
         return data
 
@@ -107,6 +121,6 @@ class SecurityTrailsClient:
             return response.json()
 
         if response.status_code in NOT_CRITICAL_ERRORS:
-            return []
+            return {}
 
         raise CriticalSecurityTrailsResponseError(response)

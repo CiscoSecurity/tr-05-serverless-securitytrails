@@ -48,7 +48,7 @@ class Mapping(metaclass=ABCMeta):
     def _description(self, *args):
         """Return description field depending on observable type."""
 
-    def _sighting(self, count, description):
+    def _sighting(self, count, description, refer_link):
         now = f'{datetime.now().isoformat(timespec="seconds")}Z'
 
         return {
@@ -66,10 +66,10 @@ class Mapping(metaclass=ABCMeta):
                 'end_time': now,
             },
             'description': description,
-            'source_uri': ''  # ToDo
+            'source_uri': refer_link
         }
 
-    def extract_sighting(self, st_data):
+    def extract_sighting(self, st_data, refer_link):
         if not st_data.get('records'):
             return
 
@@ -78,7 +78,7 @@ class Mapping(metaclass=ABCMeta):
         if related:
             related = sorted(related)
             description = self._description(st_data.get('type'))
-            sighting = self._sighting(count, description)
+            sighting = self._sighting(count, description, refer_link)
             sighting['relations'] = [self._resolved_to(r) for r in related]
             return sighting
 

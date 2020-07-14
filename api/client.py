@@ -17,6 +17,12 @@ IP = 'ip'
 IPV6 = 'ipv6'
 DOMAIN = 'domain'
 
+ST_OBSERVABLE_TYPES = {
+    IP: 'IP',
+    IPV6: 'IPv6',
+    DOMAIN: 'domain',
+}
+
 
 class SecurityTrailsClient:
     OBSERVABLE_TO_FILTER_TYPE = {IP: 'ipv4', IPV6: 'ipv6'}
@@ -39,6 +45,16 @@ class SecurityTrailsClient:
         https://docs.securitytrails.com/reference#ping
         """
         return self._request('ping')
+
+    @staticmethod
+    def refer_link(ui_url, observable):
+        observable_type = observable['type']
+
+        if observable_type == DOMAIN:
+            return join_url(ui_url, f'/domain/{observable["value"]}/dns')
+
+        if observable_type in (IP, IPV6):
+            return join_url(ui_url, f'/list/ip/{observable["value"]}')
 
     def get_data(self, observable):
         observable_type = observable['type']

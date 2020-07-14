@@ -17,9 +17,11 @@ def route(request):
 
 
 def test_enrich_call_with_invalid_jwt_failure(
-        route, client, invalid_jwt, invalid_jwt_expected_payload
+        route, client, invalid_jwt, invalid_jwt_expected_payload, valid_json
 ):
-    response = client.post(route, headers=headers(invalid_jwt))
+    response = client.post(
+        route, headers=headers(invalid_jwt), json=valid_json
+    )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == invalid_jwt_expected_payload

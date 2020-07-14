@@ -9,6 +9,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY', '')
 
     API_URL = 'https://api.securitytrails.com/v1/'
+    UI_URL = 'https://securitytrails.com/'
 
     USER_AGENT = ('Cisco Threat Response Integrations '
                   '<tr-integrations-support@cisco.com>')

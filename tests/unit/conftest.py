@@ -1,4 +1,3 @@
-import json
 from datetime import datetime
 from http import HTTPStatus
 from unittest.mock import MagicMock
@@ -190,40 +189,48 @@ def securitytrails_response_bad_request(secret_key):
     )
 
 
-@fixture(scope='module')
-def invalid_jwt_expected_payload(route, success_enrich_refer_domain_body):
-    if route.endswith('/deliberate/observables'):
+def expected_payload(r, observe_body, refer_body=None):
+    if r.endswith('/deliberate/observables'):
         return {'data': {}}
 
-    if route.endswith('/refer/observables'):
-        return success_enrich_refer_domain_body
+    if r.endswith('/refer/observables') and refer_body is not None:
+        return refer_body
 
-    return {
-        'errors': [
-            {
-                'code': PERMISSION_DENIED,
-                'message': 'Invalid Authorization Bearer JWT.',
-                'type': 'fatal'}
-        ],
-        'data': {}
-    }
+    return observe_body
+
+
+@fixture(scope='module')
+def invalid_jwt_expected_payload(route, success_enrich_refer_domain_body):
+    return expected_payload(
+        route,
+        {
+            'errors': [
+                {
+                    'code': PERMISSION_DENIED,
+                    'message': 'Invalid Authorization Bearer JWT.',
+                    'type': 'fatal'}
+            ],
+            'data': {}
+        },
+        success_enrich_refer_domain_body
+    )
 
 
 @fixture(scope='module')
 def invalid_json_expected_payload(route):
-    if route.endswith('/deliberate/observables'):
-        return {'data': {}}
-
-    return {
-        'errors': [
-            {
-                'code': INVALID_ARGUMENT,
-                'message':
-                    'Invalid JSON payload received. '
-                    '{"0": {"value": ["Missing data for required field."]}}',
-                'type': 'fatal'}],
-        'data': {}
-    }
+    return expected_payload(
+        route,
+        {
+            'errors': [
+                {
+                    'code': INVALID_ARGUMENT,
+                    'message':
+                        'Invalid JSON payload received. {"0": {"value": '
+                        '["Missing data for required field."]}}',
+                    'type': 'fatal'}],
+            'data': {}
+        }
+    )
 
 
 @fixture(scope='module')
@@ -241,34 +248,109 @@ def unauthorized_creds_body():
 
 
 @fixture(scope='module')
-def unauthorized_creds_expected_payload(route,
-                                        success_enrich_refer_domain_body,
-                                        unauthorized_creds_body):
-    if route.endswith('/deliberate/observables'):
-        return {'data': {}}
-
-    if route.endswith('/refer/observables'):
-        return success_enrich_refer_domain_body
-
-    return unauthorized_creds_body
+def unauthorized_creds_expected_payload(
+        route, unauthorized_creds_body, success_enrich_refer_domain_body
+):
+    return expected_payload(
+        route, unauthorized_creds_body, success_enrich_refer_domain_body
+    )
 
 
 @fixture(scope='module')
 def success_enrich_observe_domain_body():
-    return {'data':
-        {
+    return {'data': {
+        'sightings': {
+            'count': 2,
+            'docs': [
+                {
+                    'confidence': 'High',
+                    'count': 1,
+                    'description':
+                        'IPv4 addresses that cisco.com resolves to',
+                    'internal': False,
+                    'observables': [
+                        {
+                            'type': 'domain',
+                            'value': 'cisco.com'
+                        }
+                    ],
+                    'relations': [
+                        {
+                            'origin': 'SecurityTrails Enrichment Module',
+                            'related': {
+                                'type': 'ip',
+                                'value': '172.217.5.238'
+                            },
+                            'relation': 'Resolved_To',
+                            'source': {
+                                'type': 'domain',
+                                'value': 'cisco.com'
+                            }
+                        }
+                    ],
+                    'schema_version': '1.0.17',
+                    'source': 'SecurityTrails',
+                    'source_uri': (
+                        'https://securitytrails.com/domain/cisco.com/dns'
+                    ),
+                    'title': 'Found in SecurityTrails',
+                    'type': 'sighting'
+                },
+                {
+                    'confidence': 'High',
+                    'count': 1,
+                    'description':
+                        'IPv6 addresses that cisco.com resolves to',
+                    'internal': False,
+                    'observables': [
+                        {
+                            'type': 'domain',
+                            'value': 'cisco.com'
+                        }
+                    ],
+                    'relations': [
+                        {
+                            'origin': 'SecurityTrails Enrichment Module',
+                            'related': {
+                                'type': 'ipv6',
+                                'value': '2607:f8b0:4004:807::200e'
+                            },
+                            'relation': 'Resolved_To',
+                            'source': {
+                                'type': 'domain',
+                                'value': 'cisco.com'
+                            }
+                        }
+                    ],
+                    'schema_version': '1.0.17',
+                    'source': 'SecurityTrails',
+                    'source_uri':
+                        'https://securitytrails.com/domain/cisco.com/dns',
+                    'title': 'Found in SecurityTrails',
+                    'type': 'sighting'
+                }
+            ]
+        }
+    }
+    }
+
+
+@fixture(scope='module')
+def success_enrich_observe_ip_body():
+    return {
+        'data': {
             'sightings': {
-                'count': 2,
+                'count': 1,
                 'docs': [
                     {
                         'confidence': 'High',
-                        'count': 1,
-                        'description': 'IPv4 addresses that cisco.com resolves to',
+                        'count': 40741,
+                        'description': 'Domains that have resolved to 1.1.1.1',
                         'internal': False,
                         'observables': [
                             {
-                                'type': 'domain',
-                                'value': 'cisco.com'
+                                'type': 'ip',
+                                'value': '1.1.1.1'
                             }
                         ],
                         'relations': [
@@ -276,51 +358,19 @@ def success_enrich_observe_domain_body():
                                 'origin': 'SecurityTrails Enrichment Module',
                                 'related': {
                                     'type': 'ip',
-                                    'value': '172.217.5.238'
+                                    'value': '1.1.1.1'
                                 },
                                 'relation': 'Resolved_To',
                                 'source': {
                                     'type': 'domain',
-                                    'value': 'cisco.com'
+                                    'value': 'udemy.com'
                                 }
                             }
                         ],
                         'schema_version': '1.0.17',
                         'source': 'SecurityTrails',
-                        'source_uri': (
-                            'https://securitytrails.com/domain/cisco.com/dns'
-                        ),
-                        'title': 'Found in SecurityTrails',
-                        'type': 'sighting'
-                    },
-                    {
-                        'confidence': 'High',
-                        'count': 1,
-                        'description': 'IPv6 addresses that cisco.com resolves to',
-                        'internal': False,
-                        'observables': [
-                            {
-                                'type': 'domain',
-                                'value': 'cisco.com'
-                            }
-                        ],
-                        'relations': [
-                            {
-                                'origin': 'SecurityTrails Enrichment Module',
-                                'related': {
-                                    'type': 'ipv6',
-                                    'value': '2607:f8b0:4004:807::200e'
-                                },
-                                'relation': 'Resolved_To',
-                                'source': {
-                                    'type': 'domain',
-                                    'value': 'cisco.com'
-                                }
-                            }
-                        ],
-                        'schema_version': '1.0.17',
-                        'source': 'SecurityTrails',
-                        'source_uri': 'https://securitytrails.com/domain/cisco.com/dns',
+                        'source_uri':
+                            'https://securitytrails.com/list/ip/1.1.1.1',
                         'title': 'Found in SecurityTrails',
                         'type': 'sighting'
                     }
@@ -328,22 +378,6 @@ def success_enrich_observe_domain_body():
             }
         }
     }
-
-
-@fixture(scope='module')
-def success_enrich_observe_ip_body():
-    return {'data': {'sightings': {'count': 1, 'docs': [
-        {'confidence': 'High', 'count': 40741,
-         'description': 'Domains that have resolved to 1.1.1.1',
-         'internal': False,
-         'observables': [{'type': 'ip', 'value': '1.1.1.1'}], 'relations': [
-            {'origin': 'SecurityTrails Enrichment Module',
-             'related': {'type': 'ip', 'value': '1.1.1.1'},
-             'relation': 'Resolved_To',
-             'source': {'type': 'domain', 'value': 'udemy.com'}}],
-         'schema_version': '1.0.17', 'source': 'SecurityTrails',
-         'source_uri': 'https://securitytrails.com/list/ip/1.1.1.1',
-         'title': 'Found in SecurityTrails', 'type': 'sighting'}]}}}
 
 
 @fixture(scope='module')
@@ -363,11 +397,17 @@ def success_enrich_refer_domain_body():
 
 @fixture(scope='module')
 def success_enrich_refer_ip_body():
-    return {'data': [{'categories': ['Search', 'SecurityTrails'],
-                      'description': 'Lookup this IP on SecurityTrails',
-                      'id': 'ref-securitytrails-search-ip-1.1.1.1',
-                      'title': 'Search for this IP',
-                      'url': 'https://securitytrails.com/list/ip/1.1.1.1'}]}
+    return {
+        'data': [
+            {
+                'categories': ['Search', 'SecurityTrails'],
+                'description': 'Lookup this IP on SecurityTrails',
+                'id': 'ref-securitytrails-search-ip-1.1.1.1',
+                'title': 'Search for this IP',
+                'url': 'https://securitytrails.com/list/ip/1.1.1.1'
+            }
+        ]
+    }
 
 
 @fixture(scope='module')
@@ -375,23 +415,16 @@ def success_enrich_expected_payload_domain(
         route, success_enrich_observe_domain_body,
         success_enrich_refer_domain_body
 ):
-    if route.endswith('/deliberate/observables'):
-        return {'data': {}}
-
-    if route.endswith('/refer/observables'):
-        return success_enrich_refer_domain_body
-
-    return success_enrich_observe_domain_body
+    return expected_payload(
+        route, success_enrich_observe_domain_body,
+        success_enrich_refer_domain_body
+    )
 
 
 @fixture(scope='module')
 def success_enrich_expected_payload_ip(
         route, success_enrich_observe_ip_body, success_enrich_refer_ip_body
 ):
-    if route.endswith('/deliberate/observables'):
-        return {'data': {}}
-
-    if route.endswith('/refer/observables'):
-        return success_enrich_refer_ip_body
-
-    return success_enrich_observe_ip_body
+    return expected_payload(
+        route, success_enrich_observe_ip_body, success_enrich_refer_ip_body
+    )

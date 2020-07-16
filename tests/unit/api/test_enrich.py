@@ -17,6 +17,10 @@ def route(request):
     return request.param
 
 
+IP_OBSERVABLE = {'type': 'ip', 'value': '1.1.1.1'}
+DOMAIN_OBSERVABLE = {'type': 'domain', 'value': 'cisco.com'}
+
+
 def test_enrich_call_with_invalid_jwt_failure(
         route, client, invalid_jwt, invalid_jwt_expected_payload, valid_json
 ):
@@ -47,7 +51,7 @@ def test_enrich_call_with_valid_jwt_but_invalid_json_failure(
 
 @fixture(scope='module')
 def valid_json():
-    return [{'type': 'domain', 'value': 'cisco.com'}]
+    return [DOMAIN_OBSERVABLE]
 
 
 def test_enrich_call_with_unauthorized_creds_failure(
@@ -65,17 +69,26 @@ def test_enrich_call_with_unauthorized_creds_failure(
         assert response.json == unauthorized_creds_expected_payload
 
 
-def test_enrich_call_success_domain(
-        route, client, valid_jwt, valid_json,
-        securitytrails_history_a_ok, securitytrails_history_aaaa_ok,
-        success_enrich_expected_payload_domain
+def observables():
+    yield DOMAIN_OBSERVABLE
+    yield IP_OBSERVABLE
+
+
+@fixture(scope='module', params=observables(), ids=lambda ob: f'{ob["type"]}')
+def observable(request):
+    return request.param
+
+
+def test_enrich_call_success(
+        route, client, valid_jwt, observable,
+        success_enrich_client_data,
+        success_enrich_expected_payload
 ):
     with patch('requests.request') as get_mock:
-        get_mock.side_effect = [securitytrails_history_a_ok,
-                                securitytrails_history_aaaa_ok]
+        get_mock.side_effect = success_enrich_client_data
 
         response = client.post(
-            route, headers=headers(valid_jwt), json=valid_json
+            route, headers=headers(valid_jwt), json=[observable]
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -88,33 +101,7 @@ def test_enrich_call_success_domain(
                 assert s.pop('id')
                 assert s.pop('observed_time')
 
-        assert response == success_enrich_expected_payload_domain
-
-
-def test_enrich_call_success_ip(
-        route, client, valid_jwt,
-        securitytrails_domain_list_ok,
-        success_enrich_expected_payload_ip
-):
-    with patch('requests.request') as get_mock:
-        get_mock.return_value = securitytrails_domain_list_ok
-
-        response = client.post(
-            route, headers=headers(valid_jwt),
-            json=[{'type': 'ip', 'value': '1.1.1.1'}]
-        )
-
-        assert response.status_code == HTTPStatus.OK
-
-        response = response.get_json()
-        assert response.get('errors') is None
-
-        if response.get('data') and isinstance(response['data'], dict):
-            for s in response['data'].get('sightings', {}).get('docs', []):
-                assert s.pop('id')
-                assert s.pop('observed_time')
-
-        assert response == success_enrich_expected_payload_ip
+        assert response == success_enrich_expected_payload
 
 
 def test_enrich_success_with_bad_request(
@@ -132,15 +119,8 @@ def test_enrich_success_with_bad_request(
         assert response.json == {'data': {}}
 
 
-@fixture(scope='module')
-def valid_json_multiple():
-    return [{'type': 'ip', 'value': '1.1.1.1'},
-            {'type': 'domain', 'value': '1'},
-            {'type': 'domain', 'value': 'cisco.com'}]
-
-
 def test_enrich_call_success_with_extended_error_handling(
-        client, valid_jwt, valid_json_multiple,
+        client, valid_jwt,
         securitytrails_domain_list_ok, securitytrails_response_bad_request,
         securitytrails_response_unauthorized_creds,
         success_enrich_observe_ip_body, unauthorized_creds_body
@@ -149,10 +129,13 @@ def test_enrich_call_success_with_extended_error_handling(
         get_mock.side_effect = [securitytrails_domain_list_ok,
                                 securitytrails_response_bad_request,
                                 securitytrails_response_unauthorized_creds,
-                                ]
+                                securitytrails_domain_list_ok]
         response = client.post(
             '/observe/observables', headers=headers(valid_jwt),
-            json=valid_json_multiple
+            json=[IP_OBSERVABLE,
+                  {'type': 'domain', 'value': '1'},
+                  DOMAIN_OBSERVABLE,
+                  {'type': 'ip', 'value': '2.2.2.2'}]
         )
 
         assert response.status_code == HTTPStatus.OK

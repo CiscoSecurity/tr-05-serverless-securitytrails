@@ -81,14 +81,14 @@ def securitytrails_api_error_mock(status_code, text=None):
     return mock_response
 
 
-@fixture(scope='function')
+@fixture(scope='module')
 def securitytrails_ping_ok():
     return securitytrails_api_response_mock(
         HTTPStatus.OK, payload=[{"success": True}]
     )
 
 
-@fixture(scope='function')
+@fixture(scope='module')
 def securitytrails_history_a_ok():
     return securitytrails_api_response_mock(
         HTTPStatus.OK, payload={
@@ -110,7 +110,7 @@ def securitytrails_history_a_ok():
     )
 
 
-@fixture(scope='function')
+@fixture(scope='module')
 def securitytrails_history_aaaa_ok():
     return securitytrails_api_response_mock(
         HTTPStatus.OK, payload={
@@ -137,7 +137,7 @@ def securitytrails_history_aaaa_ok():
     )
 
 
-@fixture(scope='function')
+@fixture(scope='module')
 def securitytrails_domain_list_ok():
     return securitytrails_api_response_mock(
         HTTPStatus.OK, payload={
@@ -411,20 +411,30 @@ def success_enrich_refer_ip_body():
 
 
 @fixture(scope='module')
-def success_enrich_expected_payload_domain(
-        route, success_enrich_observe_domain_body,
-        success_enrich_refer_domain_body
+def success_enrich_client_data(
+        observable, securitytrails_history_a_ok,
+        securitytrails_history_aaaa_ok, securitytrails_domain_list_ok
 ):
-    return expected_payload(
-        route, success_enrich_observe_domain_body,
-        success_enrich_refer_domain_body
-    )
+    if observable['type'] == 'domain':
+        return [securitytrails_history_a_ok,
+                securitytrails_history_aaaa_ok]
+    if observable['type'] == 'ip':
+        return [securitytrails_domain_list_ok]
 
 
 @fixture(scope='module')
-def success_enrich_expected_payload_ip(
-        route, success_enrich_observe_ip_body, success_enrich_refer_ip_body
+def success_enrich_expected_payload(
+        route, observable,
+        success_enrich_observe_ip_body, success_enrich_refer_ip_body,
+        success_enrich_observe_domain_body, success_enrich_refer_domain_body
 ):
-    return expected_payload(
-        route, success_enrich_observe_ip_body, success_enrich_refer_ip_body
-    )
+    if observable['type'] == 'domain':
+        return expected_payload(
+            route, success_enrich_observe_domain_body,
+            success_enrich_refer_domain_body
+        )
+    if observable['type'] == 'ip':
+        return expected_payload(
+            route, success_enrich_observe_ip_body,
+            success_enrich_refer_ip_body
+        )

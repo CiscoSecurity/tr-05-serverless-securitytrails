@@ -1,0 +1,103 @@
+{
+  "input": {
+    "records": [
+      {
+        "whois": {
+          "registrar": null,
+          "expiresDate": null,
+          "createdDate": null
+        },
+        "mail_provider": [
+          "Ai Networks Limited"
+        ],
+        "hostname": "121marketinglead.com",
+        "host_provider": [
+          "Ai Networks Limited"
+        ],
+        "computed": {
+          "company_name": null
+        },
+        "alexa_rank": null
+      },
+      {
+        "whois": {
+          "registrar": null,
+          "expiresDate": null,
+          "createdDate": null
+        },
+        "mail_provider": [],
+        "hostname": "123qatest.co.uk",
+        "host_provider": [],
+        "computed": {
+          "company_name": null
+        },
+        "alexa_rank": null
+      },
+      {
+        "whois": {
+          "registrar": null,
+          "expiresDate": null,
+          "createdDate": null
+        },
+        "mail_provider": [],
+        "hostname": "123qatest.co.uk",
+        "host_provider": [],
+        "computed": {
+          "company_name": null
+        },
+        "alexa_rank": null
+      }
+    ],
+    "record_count": 122,
+    "meta": {
+      "total_pages": 2,
+      "query": "ipv6 = '2001:0db8:85a3:0000:0000:8a2e:0370:7334'",
+      "page": 1,
+      "max_page": 2
+    },
+    "endpoint": "/v1/domains/list"
+  },
+  "output": {
+    "schema_version": "1.0.17",
+    "type": "sighting",
+    "source": "SecurityTrails",
+    "title": "Found in SecurityTrails",
+    "confidence": "High",
+    "internal": false,
+    "count": 122,
+    "observables": [
+      {
+        "type": "ipv6",
+        "value": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+      }
+    ],
+    "description": "Domains that have resolved to 2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+    "source_uri": "ui_url",
+    "relations": [
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "value": "121marketinglead.com",
+          "type": "domain"
+        },
+        "related": {
+          "type": "ipv6",
+          "value": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+        }
+      },
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "value": "123qatest.co.uk",
+          "type": "domain"
+        },
+        "related": {
+          "type": "ipv6",
+          "value": "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+        }
+      }
+    ]
+  }
+}

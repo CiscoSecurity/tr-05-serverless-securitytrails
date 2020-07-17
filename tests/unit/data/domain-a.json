@@ -1,0 +1,94 @@
+{
+  "input": {
+    "type": "a/ipv4",
+    "records": [
+      {
+        "values": [
+          {
+            "ip_count": 3299,
+            "ip": "172.217.5.238"
+          }
+        ],
+        "type": "a",
+        "organizations": [
+          "Google LLC"
+        ],
+        "last_seen": "2020-07-15",
+        "first_seen": "2020-07-13"
+      },
+      {
+        "values": [
+          {
+            "ip_count": 5254,
+            "ip": "172.217.2.110"
+          }
+        ],
+        "type": "a",
+        "organizations": [
+          "Google LLC"
+        ],
+        "last_seen": "2020-07-13",
+        "first_seen": "2020-07-11"
+      },
+      {
+        "values": [
+          {
+            "ip_count": 1947,
+            "ip": "172.217.5.238"
+          }
+        ],
+        "type": "a",
+        "organizations": [
+          "Google LLC"
+        ],
+        "last_seen": "2020-07-11",
+        "first_seen": "2020-07-10"
+      }
+    ],
+    "pages": 20,
+    "endpoint": "/v1/history/google.com/dns/a"
+  },
+  "output": {
+    "schema_version": "1.0.17",
+    "type": "sighting",
+    "source": "SecurityTrails",
+    "title": "Found in SecurityTrails",
+    "confidence": "High",
+    "internal": false,
+    "count": 2,
+    "observables": [
+      {
+        "type": "domain",
+        "value": "google.com"
+      }
+    ],
+    "description": "IPv4 addresses that google.com resolves to",
+    "source_uri": "ui_url",
+    "relations": [
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "type": "domain",
+          "value": "google.com"
+        },
+        "related": {
+          "value": "172.217.2.110",
+          "type": "ip"
+        }
+      },
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "type": "domain",
+          "value": "google.com"
+        },
+        "related": {
+          "value": "172.217.5.238",
+          "type": "ip"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "input": {
+    "records": [
+      {
+        "whois": {
+          "registrar": "SafeNames Ltd",
+          "expiresDate": 1565728665000,
+          "createdDate": 1250195865000
+        },
+        "mail_provider": [
+          "Google LLC"
+        ],
+        "hostname": "udemy.com",
+        "host_provider": [
+          "Cloudflare, Inc."
+        ],
+        "computed": {
+          "company_name": "Udemy Inc."
+        },
+        "alexa_rank": 83
+      },
+      {
+        "whois": {
+          "registrar": null,
+          "expiresDate": null,
+          "createdDate": null
+        },
+        "mail_provider": [],
+        "hostname": "udemy.com",
+        "host_provider": [
+          "Cloudflare, Inc."
+        ],
+        "computed": {
+          "company_name": "Udemy Inc."
+        },
+        "alexa_rank": 44072
+      },
+      {
+        "whois": {
+          "registrar": null,
+          "expiresDate": null,
+          "createdDate": null
+        },
+        "mail_provider": [
+          "GANDI SAS"
+        ],
+        "hostname": "efoood.org",
+        "host_provider": [
+          "Cloudflare, Inc."
+        ],
+        "computed": {
+          "company_name": null
+        },
+        "alexa_rank": 153565
+      }
+    ],
+    "record_count": 40741,
+    "meta": {
+      "total_pages": 408,
+      "query": "ipv4 = '1.1.1.1'",
+      "page": 1,
+      "max_page": 100
+    },
+    "endpoint": "/v1/domains/list"
+  },
+  "output": {
+    "schema_version": "1.0.17",
+    "type": "sighting",
+    "source": "SecurityTrails",
+    "title": "Found in SecurityTrails",
+    "confidence": "High",
+    "internal": false,
+    "count": 40741,
+    "observables": [
+      {
+        "type": "ip",
+        "value": "1.1.1.1"
+      }
+    ],
+    "description": "Domains that have resolved to 1.1.1.1",
+    "source_uri": "ui_url",
+    "relations": [
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "value": "efoood.org",
+          "type": "domain"
+        },
+        "related": {
+          "type": "ip",
+          "value": "1.1.1.1"
+        }
+      },
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "value": "udemy.com",
+          "type": "domain"
+        },
+        "related": {
+          "type": "ip",
+          "value": "1.1.1.1"
+        }
+      }
+    ]
+  }
+}

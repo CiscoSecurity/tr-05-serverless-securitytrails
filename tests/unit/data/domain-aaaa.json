@@ -1,0 +1,94 @@
+{
+  "input": {
+    "type": "a/ipv6",
+    "records": [
+      {
+        "values": [
+          {
+            "ipv6_count": 3189,
+            "ipv6": "2607:f8b0:4004:807::200e"
+          }
+        ],
+        "type": "aaaa",
+        "organizations": [
+          "Google LLC"
+        ],
+        "last_seen": "2020-07-15",
+        "first_seen": "2020-07-13"
+      },
+      {
+        "values": [
+          {
+            "ipv6_count": 5040,
+            "ipv6": "2607:f8b0:4004:807::200e"
+          }
+        ],
+        "type": "aaaa",
+        "organizations": [
+          "Google LLC"
+        ],
+        "last_seen": "2020-07-13",
+        "first_seen": "2020-07-11"
+      },
+      {
+        "values": [
+          {
+            "ipv6_count": 1874,
+            "ipv6": "2607:f8b0:4004:804::200e"
+          }
+        ],
+        "type": "aaaa",
+        "organizations": [
+          "Google LLC"
+        ],
+        "last_seen": "2020-07-11",
+        "first_seen": "2020-07-10"
+      }
+    ],
+    "pages": 23,
+    "endpoint": "/v1/history/google.com/dns/aaaa"
+  },
+  "output": {
+    "schema_version": "1.0.17",
+    "type": "sighting",
+    "source": "SecurityTrails",
+    "title": "Found in SecurityTrails",
+    "confidence": "High",
+    "internal": false,
+    "count": 2,
+    "observables": [
+      {
+        "type": "domain",
+        "value": "google.com"
+      }
+    ],
+    "description": "IPv6 addresses that google.com resolves to",
+    "source_uri": "ui_url",
+    "relations": [
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "type": "domain",
+          "value": "google.com"
+        },
+        "related": {
+          "value": "2607:f8b0:4004:804::200e",
+          "type": "ipv6"
+        }
+      },
+      {
+        "origin": "SecurityTrails Enrichment Module",
+        "relation": "Resolved_To",
+        "source": {
+          "type": "domain",
+          "value": "google.com"
+        },
+        "related": {
+          "value": "2607:f8b0:4004:807::200e",
+          "type": "ipv6"
+        }
+      }
+    ]
+  }
+}

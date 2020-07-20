@@ -147,3 +147,19 @@ def test_enrich_call_success_with_extended_error_handling(
 
         assert response['data'] == success_enrich_observe_ip_body['data']
         assert response['errors'] == unauthorized_creds_body['errors']
+
+
+def test_enrich_call_with_key_error(
+        client, valid_jwt, valid_json, kee_error_body
+):
+    with patch('api.enrich.SecurityTrailsClient.get_data') as get_mock, \
+            patch('api.enrich.Mapping.extract_sighting') as extract_mock:
+        get_mock.side_effect = ['some_record']
+        extract_mock.side_effect = [KeyError('foo')]
+
+        response = client.post(
+            '/observe/observables', headers=headers(valid_jwt), json=valid_json
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.json == kee_error_body

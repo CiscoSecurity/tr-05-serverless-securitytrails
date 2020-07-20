@@ -107,7 +107,7 @@ class Domain(Mapping):
         related = []
         for r in st_data['records']:
             related.extend(
-                v.get('ip') or v.get('ipv6') or 0 for v in r['values']
+                v.get('ip') or v['ipv6'] for v in r['values']
             )
 
         related = set(related)

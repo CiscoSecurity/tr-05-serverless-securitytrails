@@ -1,4 +1,4 @@
-[![Travis CI Build Status](https://api.travis-ci.com/CiscoSecurity/tr-05-serverless-farsight-dnsdb.svg?branch=develop)](https://api.travis-ci.com/CiscoSecurity/tr-05-serverless-farsight-dnsdb)
+[![Travis CI Build Status](https://api.travis-ci.com/CiscoSecurity/tr-05-serverless-securitytrails.svg?branch=develop)](https://api.travis-ci.com/CiscoSecurity/tr-05-serverless-securitytrails)
 
 # SecurityTrails Relay
 
@@ -267,9 +267,32 @@ header set to `Bearer <JWT>`.
 
 ### Supported Environment Variables
 
-- ToDo
+- `NUMBER_OF_PAGES`
+  - Restricts the maximum number of pages to request from 
+  SecurityTrails API (a page returns 100 resolutions). 
+  - Applies to the following CTIM entities:
+    - `Sighting`.
+  - Must be a non-negative integer. Defaults to `1` (if unset or incorrect).
+  - If set to `0`, all available pages are returned.
   
 ### CTIM Mapping Specifics
 
-- ToDo
+Each SecurityTrails response generates a single CTIM `Sighting`. 
 
+- The time of investigation is used as a `Sighting.observed_time.start_time`.
+
+- If an investigated observable is an `IP/IPv6`:  
+    - a request to the SecurityTrails `Domains - Search` Endpoint is done.
+    - unique values from the 
+    `.records[].values[].ip`/`.records[].values[].ipv4` field are linked as 
+    `Sighting` observed relations `domain->'Resolved_To'->IP/IPv6`.
+    - the `record_count` field is used as a `Sighting.count`.
+    
+- If an investigated observable is a `domain`: 
+    - two requests to the SecurityTrails `History - DNS` Endpoint are done 
+    (to get IP and IPv6 addresses `domain` resolves to).
+    - unique values from the 
+    `.records[].values[].ip`/`.records[].values[].ipv4` field are linked as 
+    `Sighting` observed relations `domain->'Resolved_To'->IP/IPv6`.
+    - the number of unique `IP/IPv6` `domain` resolves to 
+    is used as a `Sighting.count`.

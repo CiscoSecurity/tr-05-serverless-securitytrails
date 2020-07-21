@@ -150,7 +150,7 @@ def test_enrich_call_success_with_extended_error_handling(
 
 
 def test_enrich_call_with_key_error(
-        client, valid_jwt, valid_json, kee_error_body
+        client, valid_jwt, valid_json, key_error_body
 ):
     with patch('api.enrich.SecurityTrailsClient.get_data') as get_mock, \
             patch('api.enrich.Mapping.extract_sighting') as extract_mock:
@@ -162,4 +162,4 @@ def test_enrich_call_with_key_error(
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert response.json == kee_error_body
+        assert response.json == key_error_body

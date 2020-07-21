@@ -257,7 +257,7 @@ def unauthorized_creds_expected_payload(
 
 
 @fixture(scope='module')
-def kee_error_body():
+def key_error_body():
     return {
         'errors': [
             {

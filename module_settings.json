@@ -1,0 +1,11 @@
+{
+  "name": "SecurityTrails",
+  "jwt": {
+   "key": "SecurityTrails API Key"
+},
+  "region": {
+    "us": "80b90eb0-a856-4251-b857-ab9ebdf917ae",
+    "eu":  "6bb4e5c7-baad-415b-9ce8-e9dddc715b4e",
+    "apjc": "0c411bb0-6c96-44a6-afbf-f3d483046d2d"
+  }
+}

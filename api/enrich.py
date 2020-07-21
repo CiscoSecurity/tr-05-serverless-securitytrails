@@ -28,18 +28,27 @@ def observe_observables():
                                   current_app.config['NUMBER_OF_PAGES'])
     g.sightings = []
 
-    for observable in observables:
-        mapping = Mapping.for_(observable)
+    try:
+        for observable in observables:
+            mapping = Mapping.for_(observable)
 
-        if mapping:
-            client_data = client.get_data(observable)
+            if mapping:
+                client_data = client.get_data(observable)
 
-            for record in client_data:
-                refer_link = client.refer_link(current_app.config['UI_URL'],
-                                               observable)
-                sighting = mapping.extract_sighting(record, refer_link)
-                if sighting:
-                    g.sightings.append(sighting)
+                for record in client_data:
+                    refer_link = client.refer_link(
+                        current_app.config['UI_URL'], observable
+                    )
+                    sighting = mapping.extract_sighting(record, refer_link)
+                    if sighting:
+                        g.sightings.append(sighting)
+    except KeyError:
+        g.errors = [{
+            'type': 'fatal',
+            'code': 'key error',
+            'message': 'The data structure of SecurityTrails '
+                       'has changed. The module is broken.'
+        }]
 
     return jsonify_result()
 

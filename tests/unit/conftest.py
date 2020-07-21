@@ -257,6 +257,21 @@ def unauthorized_creds_expected_payload(
 
 
 @fixture(scope='module')
+def key_error_body():
+    return {
+        'errors': [
+            {
+                'type': 'fatal',
+                'code': 'key error',
+                'message': 'The data structure of SecurityTrails '
+                           'has changed. The module is broken.'
+            }
+        ],
+        'data': {}
+    }
+
+
+@fixture(scope='module')
 def success_enrich_observe_domain_body():
     return {'data': {
         'sightings': {

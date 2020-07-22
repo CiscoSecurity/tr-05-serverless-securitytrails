@@ -59,22 +59,23 @@ def refer_observables():
 
     ui_url = current_app.config['UI_URL']
 
-    def type_of(observable):
-        return ST_OBSERVABLE_TYPES[observable['type']]
-
-    data = [
-        {
-            'id': (
-                'ref-securitytrails-search-{type}-{value}'.format(**observable)
-            ),
-            'title': f'Search for this {type_of(observable)}',
-            'description': (
-                f'Lookup this {type_of(observable)} on SecurityTrails'
-            ),
-            'url': SecurityTrailsClient.refer_link(ui_url, observable),
-            'categories': ['Search', 'SecurityTrails'],
-        }
-        for observable in observables
-    ]
+    data = []
+    for observable in observables:
+        type_ = ST_OBSERVABLE_TYPES.get(observable['type'])
+        if type_:
+            data.append(
+                {
+                    'id': (
+                        'ref-securitytrails-search-{type}-{value}'.format(
+                            **observable)
+                    ),
+                    'title': f'Search for this {type_}',
+                    'description': (
+                        f'Lookup this {type_} on SecurityTrails'
+                    ),
+                    'url': SecurityTrailsClient.refer_link(ui_url, observable),
+                    'categories': ['Search', 'SecurityTrails'],
+                }
+            )
 
     return jsonify_data(data)

@@ -94,12 +94,15 @@ def test_data(request):
     return request.param
 
 
-def test_get_pages(test_data):
+def test_get_pages(test_data, securitytrails_ping_ok):
     client = SecurityTrailsClient('base_url', 'api_key',
                                   'user_agent',
                                   number_of_pages=test_data.number_of_pages)
 
-    with patch("api.client.add_error") as add_error_mock:
+    with patch("api.client.add_error") as add_error_mock, \
+            patch("requests.request") as ping_mock:
+        ping_mock.return_value = securitytrails_ping_ok
+
         result = client._get_pages(OBSERVABLE, test_data.endpoint_mock)
 
         assert len(result.pop('records')) == test_data.expected_records_len
@@ -107,14 +110,17 @@ def test_get_pages(test_data):
         add_error_mock.assert_not_called()
 
 
-def test_get_pages_with_unprocessed_pages_left():
+def test_get_pages_with_unprocessed_pages_left(securitytrails_ping_ok):
     def endpoint(*args, **kwargs):
         return copy.deepcopy(DOMAIN_LIST)
 
     client = SecurityTrailsClient('base_url', 'api_key',
                                   'user_agent', number_of_pages=10)
 
-    with patch("api.client.add_error") as add_error_mock:
+    with patch("api.client.add_error") as add_error_mock, \
+            patch("requests.request") as ping_mock:
+        ping_mock.return_value = securitytrails_ping_ok
+
         result = client._get_pages(OBSERVABLE, endpoint)
 
         assert len(result.pop('records')) == 5

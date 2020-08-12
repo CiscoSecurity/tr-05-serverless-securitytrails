@@ -26,6 +26,16 @@ ST_OBSERVABLE_TYPES = {
 }
 
 
+def add_pause(func, *args, min_execution_time=1.1, **kwargs):
+    # Add delay to func execution to prevent rate limit errors
+    start = time.time()
+    result = func(*args, **kwargs)
+    pause_time = min_execution_time - (time.time() - start)
+    if pause_time > 0:
+        time.sleep(pause_time)
+    return result
+
+
 class SecurityTrailsClient:
     OBSERVABLE_TO_FILTER_TYPE = {IP: 'ipv4', IPV6: 'ipv6'}
 
@@ -101,15 +111,10 @@ class SecurityTrailsClient:
                     or response.get('meta', {}).get(meta_field)
                     or 0)
 
-        def get_page(p, min_execution_time=1.1):
-            start = time.time()
-            result = endpoint(observable, *args, page=p, **kwargs)
-            pause_time = min_execution_time - (time.time() - start)
-            if pause_time > 0:
-                time.sleep(pause_time)
-            return result
+        def get_page(p):
+            return add_pause(endpoint, observable, *args, page=p, **kwargs)
 
-        data = endpoint(observable, *args, **kwargs)
+        data = get_page(1)
 
         if data and data.get('records') and self.number_of_pages > 1:
             rate_limit = self._rate_limit()
@@ -160,8 +165,8 @@ class SecurityTrailsClient:
         raise CriticalSecurityTrailsResponseError(response)
 
     def _rate_limit(self):
-        response_headers = self._request(
-            'ping', data_extractor=lambda r: r.headers
+        response_headers = add_pause(
+            self._request, 'ping', data_extractor=lambda r: r.headers
         )
         if response_headers:
             return int(

@@ -1,5 +1,8 @@
 import sys
+import time
+from concurrent.futures.thread import ThreadPoolExecutor
 from http import HTTPStatus
+from os import cpu_count
 
 import requests
 
@@ -22,6 +25,16 @@ ST_OBSERVABLE_TYPES = {
     IPV6: 'IPv6',
     DOMAIN: 'domain',
 }
+
+
+def add_pause(func, *args, min_execution_time=1.1, **kwargs):
+    # Add delay to func execution to prevent rate limit errors
+    start = time.time()
+    result = func(*args, **kwargs)
+    pause_time = min_execution_time - (time.time() - start)
+    if pause_time > 0:
+        time.sleep(pause_time)
+    return result
 
 
 class SecurityTrailsClient:
@@ -99,20 +112,30 @@ class SecurityTrailsClient:
                     or response.get('meta', {}).get(meta_field)
                     or 0)
 
-        data = endpoint(observable, *args, **kwargs)
+        def get_page(p):
+            return add_pause(endpoint, observable, *args, page=p, **kwargs)
 
-        if data and self.number_of_pages > 1:
+        data = get_page(1)
+
+        if data and data.get('records') and self.number_of_pages > 1:
+            rate_limit = self._rate_limit()
             max_page = extract(data, 'max_page')
             total_pages = extract(data, 'total_pages')
-
             pages_left = 0
+
             if self.number_of_pages < max_page:
                 max_page = self.number_of_pages
             elif max_page < total_pages:
                 pages_left = total_pages - max_page
 
-            for page in range(2, max_page + 1):
-                r = endpoint(observable, *args, page=page, **kwargs)
+            with ThreadPoolExecutor(
+                    max_workers=min(rate_limit, (cpu_count() or 1) * 5)
+            ) as executor:
+                iterator = executor.map(
+                    get_page, [page for page in range(2, max_page + 1)]
+                )
+
+            for r in iterator:
                 if r and r.get('records'):
                     data['records'].extend(r['records'])
                 else:
@@ -125,7 +148,10 @@ class SecurityTrailsClient:
 
         return data
 
-    def _request(self, path, method='GET', body=None, page=1):
+    def _request(
+            self, path, method='GET', body=None, page=1,
+            data_extractor=lambda r: r.json()
+    ):
         params = {'page': page}
         url = join_url(self.base_url, path)
 
@@ -134,9 +160,18 @@ class SecurityTrailsClient:
         )
 
         if response.ok:
-            return response.json()
+            return data_extractor(response)
 
         if response.status_code in NOT_CRITICAL_ERRORS:
             return {}
 
         raise CriticalSecurityTrailsResponseError(response)
+
+    def _rate_limit(self):
+        response_headers = add_pause(
+            self._request, 'ping', data_extractor=lambda r: r.headers
+        )
+        if response_headers:
+            return int(
+                response_headers.get('X-RateLimit-Limit-second', sys.maxsize)
+            )

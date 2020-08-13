@@ -2,6 +2,7 @@ import sys
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from http import HTTPStatus
+from os import cpu_count
 
 import requests
 
@@ -127,7 +128,9 @@ class SecurityTrailsClient:
             elif max_page < total_pages:
                 pages_left = total_pages - max_page
 
-            with ThreadPoolExecutor(max_workers=rate_limit) as executor:
+            with ThreadPoolExecutor(
+                    max_workers=min(rate_limit, (cpu_count() or 1) * 5)
+            ) as executor:
                 iterator = executor.map(
                     get_page, [page for page in range(2, max_page + 1)]
                 )

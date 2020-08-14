@@ -275,7 +275,7 @@ header set to `Bearer <JWT>`.
   - Must be a non-negative integer. Defaults to `1` (if unset or incorrect).
   - If set to `0`, all available pages are returned. 
   
-**NOTE.** If there are too many results the module may return a timeout error.
+**NOTE.** If there are too many results, timeout or other performance issues may occur.
 
 ### CTIM Mapping Specifics
 

@@ -257,6 +257,21 @@ def unauthorized_creds_expected_payload(
 
 
 @fixture(scope='module')
+def sslerror_expected_payload():
+    return {
+        'data': {},
+        'errors': [
+            {
+                'code': 'unknown',
+                'message': 'Unable to verify SSL certificate:'
+                           ' Self signed certificate',
+                'type': 'fatal'
+            }
+        ]
+    }
+
+
+@fixture(scope='module')
 def key_error_body():
     return {
         'errors': [

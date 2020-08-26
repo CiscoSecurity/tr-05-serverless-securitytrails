@@ -5,10 +5,12 @@ from http import HTTPStatus
 from os import cpu_count
 
 import requests
+from requests.exceptions import SSLError
 
 from api.errors import (
     CriticalSecurityTrailsResponseError,
-    UnprocessedPagesWarning
+    UnprocessedPagesWarning,
+    SecurityTrailsSSLError
 )
 from api.utils import join_url, add_error
 
@@ -155,9 +157,12 @@ class SecurityTrailsClient:
         params = {'page': page}
         url = join_url(self.base_url, path)
 
-        response = requests.request(
-            method, url, headers=self.headers, json=body, params=params
-        )
+        try:
+            response = requests.request(
+                method, url, headers=self.headers, json=body, params=params
+            )
+        except SSLError as error:
+            raise SecurityTrailsSSLError(error)
 
         if response.ok:
             return data_extractor(response)

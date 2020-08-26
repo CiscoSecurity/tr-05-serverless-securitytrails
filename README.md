@@ -1,3 +1,4 @@
+[![Gitter Chat](https://img.shields.io/badge/gitter-join%20chat-brightgreen.svg)](https://gitter.im/CiscoSecurity/Threat-Response "Gitter Chat")
 [![Travis CI Build Status](https://api.travis-ci.com/CiscoSecurity/tr-05-serverless-securitytrails.svg?branch=develop)](https://api.travis-ci.com/CiscoSecurity/tr-05-serverless-securitytrails)
 
 # SecurityTrails Relay

@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from authlib.jose import jwt
 from pytest import fixture
 
-from api.errors import PERMISSION_DENIED, INVALID_ARGUMENT
+from api.errors import PERMISSION_DENIED, INVALID_ARGUMENT, UNKNOWN
 from app import app
 
 
@@ -262,7 +262,7 @@ def sslerror_expected_payload():
         'data': {},
         'errors': [
             {
-                'code': 'unknown',
+                'code': UNKNOWN,
                 'message': 'Unable to verify SSL certificate:'
                            ' Self signed certificate',
                 'type': 'fatal'

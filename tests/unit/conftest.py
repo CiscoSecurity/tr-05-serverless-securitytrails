@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 from authlib.jose import jwt
 from pytest import fixture
 
-from api.errors import PERMISSION_DENIED, INVALID_ARGUMENT
+from api.errors import PERMISSION_DENIED, INVALID_ARGUMENT, UNKNOWN
 from app import app
 
 
@@ -254,6 +254,21 @@ def unauthorized_creds_expected_payload(
     return expected_payload(
         route, unauthorized_creds_body, success_enrich_refer_domain_body
     )
+
+
+@fixture(scope='module')
+def sslerror_expected_payload():
+    return {
+        'data': {},
+        'errors': [
+            {
+                'code': UNKNOWN,
+                'message': 'Unable to verify SSL certificate:'
+                           ' Self signed certificate',
+                'type': 'fatal'
+            }
+        ]
+    }
 
 
 @fixture(scope='module')

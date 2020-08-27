@@ -1,7 +1,8 @@
 from http import HTTPStatus
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from pytest import fixture
+from requests.exceptions import SSLError
 
 from .utils import headers
 
@@ -46,6 +47,24 @@ def test_health_call_with_unauthorized_creds_failure(
 
         assert response.status_code == HTTPStatus.OK
         assert response.json == unauthorized_creds_expected_payload
+
+
+def test_health_call_with_ssl_error_failure(
+        route, client, valid_jwt,
+        sslerror_expected_payload
+):
+    with patch('requests.request') as get_mock:
+        mock_exception = MagicMock()
+        mock_exception.reason.args.__getitem__().verify_message \
+            = 'self signed certificate'
+        get_mock.side_effect = SSLError(mock_exception)
+
+        response = client.post(
+            route, headers=headers(valid_jwt)
+        )
+
+        assert response.status_code == HTTPStatus.OK
+        assert response.json == sslerror_expected_payload
 
 
 def test_health_call_success(route, client, valid_jwt, securitytrails_ping_ok):

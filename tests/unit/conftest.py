@@ -52,7 +52,6 @@ def wrong_payload_structure_jwt(client):
     return jwt.encode(header, payload, secret_key).decode('ascii')
 
 
-
 @fixture(scope='session')
 def invalid_jwt(valid_jwt):
     header, payload, signature = valid_jwt.split('.')

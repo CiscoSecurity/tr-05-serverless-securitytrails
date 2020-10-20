@@ -34,7 +34,9 @@ def get_jwt() -> Union[dict, Exception]:
         DecodeError: 'Wrong JWT structure'
     }
     try:
-        payload = jwt.decode(get_auth_token(), current_app.config['SECRET_KEY'])
+        payload = jwt.decode(
+            get_auth_token(), current_app.config['SECRET_KEY']
+        )
         assert tuple(payload) == ('key',)
         return payload
     except tuple(expected_errors) as error:

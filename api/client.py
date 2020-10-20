@@ -10,7 +10,8 @@ from requests.exceptions import SSLError
 from api.errors import (
     CriticalSecurityTrailsResponseError,
     UnprocessedPagesWarning,
-    SecurityTrailsSSLError
+    SecurityTrailsSSLError,
+    AuthorizationError
 )
 from api.utils import join_url, add_error
 
@@ -163,6 +164,11 @@ class SecurityTrailsClient:
             )
         except SSLError as error:
             raise SecurityTrailsSSLError(error)
+
+        # catch wrong API key
+        if response.text == \
+                '{"message":"Invalid authentication credentials"}\n':
+            raise AuthorizationError('Invalid API key')
 
         if response.ok:
             return data_extractor(response)

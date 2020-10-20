@@ -223,17 +223,7 @@ def expected_payload(r, observe_body, refer_body=None):
 @fixture(scope='module')
 def authorization_errors_expected_payload(route,
                                           success_enrich_refer_domain_body):
-    def _make_payload_message(test_name):
-        messages = {
-            'authorization_header_failure': 'Authorization header is missing',
-            'wrong_authorization_type': 'Wrong authorization type',
-            'wrong_jwt_structure': 'Wrong JWT structure',
-            'jwt_encoded_by_wrong_key':
-                'Failed to decode JWT with provided key',
-            'wrong_jwt_payload_structure': 'Wrong JWT payload structure',
-            'missed_secret_key': '<SECRET_KEY> is missing',
-            'unauthorized_creds_failure': 'Invalid API key'
-        }
+    def _make_payload_message(message):
         return expected_payload(
             route,
             {
@@ -241,7 +231,7 @@ def authorization_errors_expected_payload(route,
                     {
                         'code': AUTH_ERROR,
                         'message': f'Authorization failed: '
-                                   f'{messages[test_name]}',
+                                   f'{message}',
                         'type': 'fatal'}
                 ],
                 'data': {}

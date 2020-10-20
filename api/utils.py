@@ -9,7 +9,9 @@ from api.errors import InvalidArgumentError, AuthorizationError
 
 
 def get_auth_token() -> Union[str, Exception]:
-    """Parse the incoming request's Authorization header and Validate it."""
+    """
+    Parse and validate incoming request Authorization header.
+    """
     expected_errors = {
         KeyError: 'Authorization header is missing',
         AssertionError: 'Wrong authorization type'
@@ -24,8 +26,7 @@ def get_auth_token() -> Union[str, Exception]:
 
 def get_jwt() -> Union[dict, Exception]:
     """
-    Get Authorization payload and validate its signature
-    according the application's secret key .
+    Decode Authorization token. Extract and validate credentials.
     """
     expected_errors = {
         AssertionError: 'Wrong JWT payload structure',
@@ -37,7 +38,7 @@ def get_jwt() -> Union[dict, Exception]:
         payload = jwt.decode(
             get_auth_token(), current_app.config['SECRET_KEY']
         )
-        assert tuple(payload) == ('key',)
+        assert payload.get('key')
         return payload
     except tuple(expected_errors) as error:
         raise AuthorizationError(expected_errors[error.__class__])

@@ -166,8 +166,7 @@ class SecurityTrailsClient:
             raise SecurityTrailsSSLError(error)
 
         # catch wrong API key
-        if response.text == \
-                '{"message":"Invalid authentication credentials"}\n':
+        if response.status_code == HTTPStatus.FORBIDDEN:
             raise AuthorizationError('Invalid API key')
 
         if response.ok:

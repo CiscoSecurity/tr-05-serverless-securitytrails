@@ -10,7 +10,8 @@ from requests.exceptions import SSLError
 from api.errors import (
     CriticalSecurityTrailsResponseError,
     UnprocessedPagesWarning,
-    SecurityTrailsSSLError
+    SecurityTrailsSSLError,
+    AuthorizationError
 )
 from api.utils import join_url, add_error
 
@@ -163,6 +164,12 @@ class SecurityTrailsClient:
             )
         except SSLError as error:
             raise SecurityTrailsSSLError(error)
+
+        # catch wrong API key
+        if response.status_code == HTTPStatus.FORBIDDEN:
+            raise AuthorizationError(
+                response.json().get('message') or response.text
+            )
 
         if response.ok:
             return data_extractor(response)

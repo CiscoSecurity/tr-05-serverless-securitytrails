@@ -143,7 +143,7 @@ def test_enrich_call_with_unauthorized_creds_failure(
 
         assert response.status_code == HTTPStatus.OK
         assert response.json == authorization_errors_expected_payload(
-            'Invalid API key'
+            '{"message":"Invalid authentication credentials"}\n'
         )
 
 

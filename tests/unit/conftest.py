@@ -264,7 +264,9 @@ def unauthorized_creds_body():
         'errors': [
             {
                 'code': AUTH_ERROR,
-                'message': "Authorization failed: Invalid API key",
+                'message':
+                    'Authorization failed: '
+                    '{"message":"Invalid authentication credentials"}\n',
                 'type': 'fatal'}
         ],
         'data': {}

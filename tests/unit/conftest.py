@@ -91,13 +91,14 @@ def securitytrails_api_response_mock(status_code, payload=None):
     return mock_response
 
 
-def securitytrails_api_error_mock(status_code, text=None):
+def securitytrails_api_error_mock(status_code, text=None, json=None):
     mock_response = MagicMock()
 
     mock_response.status_code = status_code
     mock_response.ok = status_code == HTTPStatus.OK
 
     mock_response.text = text
+    mock_response.json.return_value = json
 
     return mock_response
 
@@ -198,7 +199,8 @@ def securitytrails_domain_list_ok():
 def securitytrails_response_unauthorized_creds(secret_key):
     return securitytrails_api_error_mock(
         status_code=HTTPStatus.FORBIDDEN,
-        text='{"message":"Invalid authentication credentials"}\n'
+        text='{"message":"Invalid authentication credentials"}\n',
+        json={"message": "Invalid authentication credentials"}
     )
 
 
@@ -266,7 +268,7 @@ def unauthorized_creds_body():
                 'code': AUTH_ERROR,
                 'message':
                     'Authorization failed: '
-                    '{"message":"Invalid authentication credentials"}\n',
+                    'Invalid authentication credentials',
                 'type': 'fatal'}
         ],
         'data': {}

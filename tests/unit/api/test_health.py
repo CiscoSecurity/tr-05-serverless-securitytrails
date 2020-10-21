@@ -107,7 +107,7 @@ def test_health_call_with_unauthorized_creds_failure(
 
         assert response.status_code == HTTPStatus.OK
         assert response.json == authorization_errors_expected_payload(
-            '{"message":"Invalid authentication credentials"}\n'
+            'Invalid authentication credentials'
         )
 
 

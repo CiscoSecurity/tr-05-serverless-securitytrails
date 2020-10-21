@@ -167,7 +167,9 @@ class SecurityTrailsClient:
 
         # catch wrong API key
         if response.status_code == HTTPStatus.FORBIDDEN:
-            raise AuthorizationError(response.text)
+            raise AuthorizationError(
+                response.json().get('message') or response.text
+            )
 
         if response.ok:
             return data_extractor(response)

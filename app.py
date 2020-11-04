@@ -19,11 +19,13 @@ app.register_blueprint(respond_api)
 @app.errorhandler(TRFormattedError)
 def handle_tr_formatted_error(error):
     add_error(error)
+    app.logger.error(error.json)
     return jsonify_result()
 
 
 @app.errorhandler(Exception)
 def handle_error(exception):
+    app.logger.error(exception)
     code = getattr(exception, 'code', 500)
     message = getattr(exception, 'description', 'Something went wrong.')
     reason = '.'.join([

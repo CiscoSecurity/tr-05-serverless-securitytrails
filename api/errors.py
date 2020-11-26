@@ -7,6 +7,7 @@ TOO_MANY_REQUESTS = 'too many requests'
 UNAUTHORIZED = 'unauthorized'
 NOT_FOUND = 'not found'
 UNAVAILABLE = 'unavailable'
+AUTH_ERROR = 'authorization error'
 
 
 class TRFormattedError(Exception):
@@ -23,11 +24,11 @@ class TRFormattedError(Exception):
                 'message': self.message}
 
 
-class InvalidJWTError(TRFormattedError):
-    def __init__(self):
+class AuthorizationError(TRFormattedError):
+    def __init__(self, message):
         super().__init__(
-            PERMISSION_DENIED,
-            'Invalid Authorization Bearer JWT.'
+            AUTH_ERROR,
+            f'Authorization failed: {message}'
         )
 
 
@@ -36,6 +37,16 @@ class InvalidArgumentError(TRFormattedError):
         super().__init__(
             INVALID_ARGUMENT,
             str(error)
+        )
+
+
+class SecurityTrailsSSLError(TRFormattedError):
+    def __init__(self, error):
+        error = error.args[0].reason.args[0]
+        message = getattr(error, 'verify_message', error.args[0]).capitalize()
+        super().__init__(
+            UNKNOWN,
+            f'Unable to verify SSL certificate: {message}'
         )
 
 

@@ -5,7 +5,12 @@ from unittest.mock import MagicMock
 from authlib.jose import jwt
 from pytest import fixture
 
-from api.errors import PERMISSION_DENIED, INVALID_ARGUMENT
+from api.errors import (
+    INVALID_ARGUMENT,
+    UNKNOWN,
+    AUTH_ERROR
+)
+
 from app import app
 
 
@@ -27,6 +32,17 @@ def client(secret_key):
 
 @fixture(scope='session')
 def valid_jwt(client):
+    header = {'alg': 'HS256'}
+
+    payload = {'key': 'some_key'}
+
+    secret_key = client.application.secret_key
+
+    return jwt.encode(header, payload, secret_key).decode('ascii')
+
+
+@fixture(scope='session')
+def wrong_payload_structure_jwt(client):
     header = {'alg': 'HS256'}
 
     payload = {'username': 'gdavoian', 'superuser': False}
@@ -58,6 +74,11 @@ def invalid_jwt(valid_jwt):
     return '.'.join([header, payload, signature])
 
 
+@fixture(scope='module')
+def wrong_jwt_structure():
+    return 'jwt_with_wrong_structure'
+
+
 def securitytrails_api_response_mock(status_code, payload=None):
     mock_response = MagicMock()
 
@@ -70,13 +91,14 @@ def securitytrails_api_response_mock(status_code, payload=None):
     return mock_response
 
 
-def securitytrails_api_error_mock(status_code, text=None):
+def securitytrails_api_error_mock(status_code, text=None, json=None):
     mock_response = MagicMock()
 
     mock_response.status_code = status_code
     mock_response.ok = status_code == HTTPStatus.OK
 
     mock_response.text = text
+    mock_response.json.return_value = json
 
     return mock_response
 
@@ -176,8 +198,9 @@ def securitytrails_domain_list_ok():
 @fixture(scope='session')
 def securitytrails_response_unauthorized_creds(secret_key):
     return securitytrails_api_error_mock(
-        HTTPStatus.FORBIDDEN,
-        'Error: Bad API key'
+        status_code=HTTPStatus.FORBIDDEN,
+        text='{"message":"Invalid authentication credentials"}\n',
+        json={"message": "Invalid authentication credentials"}
     )
 
 
@@ -200,20 +223,24 @@ def expected_payload(r, observe_body, refer_body=None):
 
 
 @fixture(scope='module')
-def invalid_jwt_expected_payload(route, success_enrich_refer_domain_body):
-    return expected_payload(
-        route,
-        {
-            'errors': [
-                {
-                    'code': PERMISSION_DENIED,
-                    'message': 'Invalid Authorization Bearer JWT.',
-                    'type': 'fatal'}
-            ],
-            'data': {}
-        },
-        success_enrich_refer_domain_body
-    )
+def authorization_errors_expected_payload(route,
+                                          success_enrich_refer_domain_body):
+    def _make_payload_message(message):
+        return expected_payload(
+            route,
+            {
+                'errors': [
+                    {
+                        'code': AUTH_ERROR,
+                        'message': f'Authorization failed: '
+                                   f'{message}',
+                        'type': 'fatal'}
+                ],
+                'data': {}
+            },
+            success_enrich_refer_domain_body
+        )
+    return _make_payload_message
 
 
 @fixture(scope='module')
@@ -238,9 +265,10 @@ def unauthorized_creds_body():
     return {
         'errors': [
             {
-                'code': PERMISSION_DENIED,
-                'message': ("Unexpected response from SecurityTrails: "
-                            "Error: Bad API key"),
+                'code': AUTH_ERROR,
+                'message':
+                    'Authorization failed: '
+                    'Invalid authentication credentials',
                 'type': 'fatal'}
         ],
         'data': {}
@@ -248,12 +276,18 @@ def unauthorized_creds_body():
 
 
 @fixture(scope='module')
-def unauthorized_creds_expected_payload(
-        route, unauthorized_creds_body, success_enrich_refer_domain_body
-):
-    return expected_payload(
-        route, unauthorized_creds_body, success_enrich_refer_domain_body
-    )
+def sslerror_expected_payload():
+    return {
+        'data': {},
+        'errors': [
+            {
+                'code': UNKNOWN,
+                'message': 'Unable to verify SSL certificate:'
+                           ' Self signed certificate',
+                'type': 'fatal'
+            }
+        ]
+    }
 
 
 @fixture(scope='module')

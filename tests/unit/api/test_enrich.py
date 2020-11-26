@@ -21,15 +21,91 @@ IP_OBSERVABLE = {'type': 'ip', 'value': '1.1.1.1'}
 DOMAIN_OBSERVABLE = {'type': 'domain', 'value': 'cisco.com'}
 
 
-def test_enrich_call_with_invalid_jwt_failure(
-        route, client, invalid_jwt, invalid_jwt_expected_payload, valid_json
+def test_enrich_call_with_authorization_header_failure(
+        route, client, valid_json,
+        authorization_errors_expected_payload
+):
+    response = client.post(route, json=valid_json)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        'Authorization header is missing'
+    )
+
+
+def test_enrich_call_with_wrong_authorization_type(
+        route, client, valid_jwt, valid_json,
+        authorization_errors_expected_payload
 ):
     response = client.post(
-        route, headers=headers(invalid_jwt), json=valid_json
+        route, json=valid_json,
+        headers=headers(valid_jwt, auth_type='wrong_type')
     )
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json == invalid_jwt_expected_payload
+    assert response.json == authorization_errors_expected_payload(
+        'Wrong authorization type'
+    )
+
+
+def test_enrich_call_with_wrong_jwt_structure(
+        route, client, wrong_jwt_structure, valid_json,
+        authorization_errors_expected_payload
+):
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(wrong_jwt_structure)
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        'Wrong JWT structure'
+    )
+
+
+def test_enrich_call_with_jwt_encoded_by_wrong_key(
+        route, client, invalid_jwt, valid_json,
+        authorization_errors_expected_payload
+):
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(invalid_jwt)
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        'Failed to decode JWT with provided key'
+    )
+
+
+def test_enrich_call_with_wrong_jwt_payload_structure(
+        route, client, wrong_payload_structure_jwt, valid_json,
+        authorization_errors_expected_payload
+):
+    response = client.post(
+        route, json=valid_json,
+        headers=headers(wrong_payload_structure_jwt)
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        'Wrong JWT payload structure'
+    )
+
+
+def test_enrich_call_with_missed_secret_key(
+        route, client, valid_jwt, valid_json,
+        authorization_errors_expected_payload
+):
+    right_secret_key = client.application.secret_key
+    client.application.secret_key = None
+    response = client.post(route, json=valid_json, headers=headers(valid_jwt))
+    client.application.secret_key = right_secret_key
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json == authorization_errors_expected_payload(
+        '<SECRET_KEY> is missing'
+    )
 
 
 @fixture(scope='module')
@@ -57,7 +133,7 @@ def valid_json():
 def test_enrich_call_with_unauthorized_creds_failure(
         route, client, valid_jwt,
         securitytrails_response_unauthorized_creds,
-        unauthorized_creds_expected_payload, valid_json
+        authorization_errors_expected_payload, valid_json
 ):
     with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_response_unauthorized_creds
@@ -66,7 +142,9 @@ def test_enrich_call_with_unauthorized_creds_failure(
         )
 
         assert response.status_code == HTTPStatus.OK
-        assert response.json == unauthorized_creds_expected_payload
+        assert response.json == authorization_errors_expected_payload(
+            'Invalid authentication credentials'
+        )
 
 
 def observables():
@@ -112,7 +190,8 @@ def test_enrich_success_with_bad_request(
         get_mock.return_value = securitytrails_response_bad_request
 
         response = client.post(
-            '/observe/observables', headers=headers(valid_jwt), json=valid_json
+            '/observe/observables', headers=headers(valid_jwt),
+            json=valid_json
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -158,7 +237,8 @@ def test_enrich_call_with_key_error(
         extract_mock.side_effect = [KeyError('foo')]
 
         response = client.post(
-            '/observe/observables', headers=headers(valid_jwt), json=valid_json
+            '/observe/observables', headers=headers(valid_jwt),
+            json=valid_json
         )
 
         assert response.status_code == HTTPStatus.OK

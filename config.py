@@ -1,12 +1,12 @@
 import os
 
-from version import VERSION
+from __version__ import VERSION
 
 
 class Config:
     VERSION = VERSION
 
-    SECRET_KEY = os.environ.get('SECRET_KEY', '')
+    SECRET_KEY = os.environ.get('SECRET_KEY', None)
 
     API_URL = 'https://api.securitytrails.com/v1/'
     UI_URL = 'https://securitytrails.com/'

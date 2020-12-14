@@ -11,7 +11,7 @@ class Config:
     API_URL = 'https://api.securitytrails.com/v1/'
     UI_URL = 'https://securitytrails.com/'
 
-    USER_AGENT = ('Cisco Threat Response Integrations '
+    USER_AGENT = ('SecureX Threat Response Integrations '
                   '<tr-integrations-support@cisco.com>')
 
     NUMBER_OF_PAGES_DEFAULT = 1

@@ -19,7 +19,7 @@ easily packaged and deployed. This relay is now Cisco Hosted and no longer requi
 If you want to test the application you have to install a couple of extra
 dependencies from the [test-requirements.txt](test-requirements.txt) file:
 ```
-pip install --upgrade --requirement test-requirements.txt
+pip install --upgrade --requirement requirements.txt
 ```
 
 You can perform two kinds of testing:

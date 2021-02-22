@@ -1,7 +1,6 @@
 from pytest import fixture
 from .utils import headers
 from http import HTTPStatus
-from unittest.mock import patch
 from requests.exceptions import InvalidURL, ConnectionError
 
 from api.utils import (
@@ -87,7 +86,9 @@ def test_call_with_wrong_jwt_payload_structure(
         authorization_errors_expected_payload
 ):
     mock_request.return_value = \
-        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
 
     response = client.post(
         route, json=valid_json,
@@ -104,7 +105,9 @@ def test_call_with_missing_jwks_host(
         authorization_errors_expected_payload
 ):
     mock_request.return_value = \
-        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
 
     response = client.post(
         route, json=valid_json,
@@ -121,7 +124,9 @@ def test_call_with_wrong_key(
         authorization_errors_expected_payload
 ):
     mock_request.return_value = \
-        securitytrails_api_response_mock(payload=RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY)
+        securitytrails_api_response_mock(
+            payload=RESPONSE_OF_JWKS_ENDPOINT_WITH_WRONG_KEY
+        )
 
     response = client.post(
         route, json=valid_json,
@@ -138,7 +143,9 @@ def test_call_with_wrong_jwt_structure(
         authorization_errors_expected_payload
 ):
     mock_request.return_value = \
-        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
 
     response = client.post(
         route, json=valid_json,
@@ -155,7 +162,9 @@ def test_call_with_wrong_audience(
         authorization_errors_expected_payload
 ):
     mock_request.return_value = \
-        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
 
     response = client.post(
         route, json=valid_json,
@@ -172,7 +181,9 @@ def test_call_with_wrong_kid(
         authorization_errors_expected_payload
 ):
     mock_request.return_value = \
-        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
 
     response = client.post(
         route, json=valid_json,

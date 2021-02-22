@@ -1,5 +1,4 @@
 import json
-import os
 
 
 class Config:
@@ -13,4 +12,3 @@ class Config:
                   '<tr-integrations-support@cisco.com>')
 
     NUMBER_OF_PAGES_DEFAULT = 1
-

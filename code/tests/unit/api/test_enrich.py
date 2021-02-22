@@ -55,7 +55,10 @@ def test_enrich_call_with_wrong_jwt_structure(
         authorization_errors_expected_payload,
         mock_request
 ):
-    mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+    mock_request.return_value = \
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
     header = {
         'Authorization': 'Bearer bad_jwt_token'
     }
@@ -74,7 +77,10 @@ def test_enrich_call_with_wrong_jwt_payload_structure(
         authorization_errors_expected_payload,
         mock_request
 ):
-    mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+    mock_request.return_value = \
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
     response = client.post(
         route, json=valid_json,
         headers=headers(valid_jwt(wrong_structure=True))
@@ -96,7 +102,10 @@ def test_enrich_call_with_valid_jwt_but_invalid_json_failure(
         invalid_json, invalid_json_expected_payload,
         mock_request
 ):
-    mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+    mock_request.return_value = \
+        securitytrails_api_response_mock(
+            payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+        )
     response = client.post(route,
                            headers=headers(valid_jwt()),
                            json=invalid_json)
@@ -118,7 +127,10 @@ def test_enrich_call_with_unauthorized_creds_failure(
 ):
     with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_response_unauthorized_creds
-        mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        mock_request.return_value = \
+            securitytrails_api_response_mock(
+                payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+            )
         response = client.post(
             route, headers=headers(valid_jwt()), json=valid_json
         )
@@ -147,7 +159,10 @@ def test_enrich_call_success(
 ):
     with patch('requests.request') as get_mock:
         get_mock.side_effect = success_enrich_client_data
-        mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        mock_request.return_value = \
+            securitytrails_api_response_mock(
+                payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+            )
         response = client.post(
             route, headers=headers(valid_jwt()), json=[observable]
         )
@@ -172,7 +187,10 @@ def test_enrich_success_with_bad_request(
 ):
     with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_response_bad_request
-        mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        mock_request.return_value = \
+            securitytrails_api_response_mock(
+                payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+            )
         response = client.post(
             '/observe/observables', headers=headers(valid_jwt()),
             json=valid_json
@@ -194,7 +212,10 @@ def test_enrich_call_success_with_extended_error_handling(
                                 securitytrails_response_bad_request,
                                 securitytrails_response_unauthorized_creds,
                                 securitytrails_domain_list_ok]
-        mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        mock_request.return_value = \
+            securitytrails_api_response_mock(
+                payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+            )
         response = client.post(
             '/observe/observables', headers=headers(valid_jwt()),
             json=[IP_OBSERVABLE,
@@ -221,7 +242,10 @@ def test_enrich_call_with_key_error(
             patch('api.enrich.Mapping.extract_sighting') as extract_mock:
         get_mock.side_effect = ['some_record']
         extract_mock.side_effect = [KeyError('foo')]
-        mock_request.return_value = securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        mock_request.return_value = \
+            securitytrails_api_response_mock(
+                payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
+            )
 
         response = client.post(
             '/observe/observables', headers=headers(valid_jwt()),

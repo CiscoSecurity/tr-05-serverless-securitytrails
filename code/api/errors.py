@@ -80,3 +80,11 @@ class UnprocessedPagesWarning(TRFormattedError):
             'Please contact support@securitytrails.com to download the data',
             type_='warning'
         )
+
+
+class WatchdogError(TRFormattedError):
+    def __init__(self):
+        super().__init__(
+            code='health check failed',
+            message='Invalid Health Check'
+        )

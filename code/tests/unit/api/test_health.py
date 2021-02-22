@@ -5,6 +5,8 @@ from pytest import fixture
 from requests.exceptions import SSLError
 
 from .utils import headers
+from ..conftest import securitytrails_api_response_mock
+from ..mock_for_tests import EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
 
 
 def routes():
@@ -30,10 +32,13 @@ def test_health_call_with_authorization_header_failure(
 
 def test_health_call_with_wrong_authorization_type(
         route, client, valid_jwt,
-        authorization_errors_expected_payload
+        authorization_errors_expected_payload,
+        mock_request
 ):
+    mock_request.return_value = \
+        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     response = client.post(
-        route, headers=headers(valid_jwt, auth_type='wrong_type')
+        route, headers=headers(valid_jwt(), auth_type='wrong_type')
     )
 
     assert response.status_code == HTTPStatus.OK
@@ -43,10 +48,16 @@ def test_health_call_with_wrong_authorization_type(
 
 
 def test_health_call_with_wrong_jwt_structure(
-        route, client, wrong_jwt_structure,
-        authorization_errors_expected_payload
+        route, client, valid_jwt,
+        authorization_errors_expected_payload,
+        mock_request
 ):
-    response = client.post(route, headers=headers(wrong_jwt_structure))
+    mock_request.return_value = \
+        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+    header = {
+        'Authorization': 'Bearer bad_jwt_token'
+    }
+    response = client.post(route, headers=header)
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
@@ -54,24 +65,15 @@ def test_health_call_with_wrong_jwt_structure(
     )
 
 
-def test_health_call_with_jwt_encoded_by_wrong_key(
-        route, client, invalid_jwt,
-        authorization_errors_expected_payload
-):
-    response = client.post(route, headers=headers(invalid_jwt))
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json == authorization_errors_expected_payload(
-        'Failed to decode JWT with provided key'
-    )
-
-
 def test_health_call_with_wrong_jwt_payload_structure(
-        route, client, wrong_payload_structure_jwt,
-        authorization_errors_expected_payload
+        route, client, valid_jwt,
+        authorization_errors_expected_payload,
+        mock_request
 ):
+    mock_request.return_value = \
+        securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
     response = client.post(route,
-                           headers=headers(wrong_payload_structure_jwt))
+                           headers=headers(valid_jwt(wrong_structure=True)))
 
     assert response.status_code == HTTPStatus.OK
     assert response.json == authorization_errors_expected_payload(
@@ -79,30 +81,18 @@ def test_health_call_with_wrong_jwt_payload_structure(
     )
 
 
-def test_health_call_with_missed_secret_key(
-        route, client, valid_jwt,
-        authorization_errors_expected_payload
-):
-    right_secret_key = client.application.secret_key
-    client.application.secret_key = None
-    response = client.post(route, headers=headers(valid_jwt))
-    client.application.secret_key = right_secret_key
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json == authorization_errors_expected_payload(
-        '<SECRET_KEY> is missing'
-    )
-
-
 def test_health_call_with_unauthorized_creds_failure(
         route, client, valid_jwt,
         securitytrails_response_unauthorized_creds,
-        authorization_errors_expected_payload
+        authorization_errors_expected_payload,
+        mock_request
 ):
     with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_response_unauthorized_creds
+        mock_request.return_value = \
+            securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
         response = client.post(
-            route, headers=headers(valid_jwt)
+            route, headers=headers(valid_jwt())
         )
 
         assert response.status_code == HTTPStatus.OK
@@ -113,26 +103,30 @@ def test_health_call_with_unauthorized_creds_failure(
 
 def test_health_call_with_ssl_error_failure(
         route, client, valid_jwt,
-        sslerror_expected_payload
+        sslerror_expected_payload,
+        mock_request
 ):
     with patch('requests.request') as get_mock:
         mock_exception = MagicMock()
         mock_exception.reason.args.__getitem__().verify_message \
             = 'self signed certificate'
         get_mock.side_effect = SSLError(mock_exception)
-
+        mock_request.return_value = \
+            securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
         response = client.post(
-            route, headers=headers(valid_jwt)
+            route, headers=headers(valid_jwt())
         )
 
         assert response.status_code == HTTPStatus.OK
         assert response.json == sslerror_expected_payload
 
 
-def test_health_call_success(route, client, valid_jwt, securitytrails_ping_ok):
+def test_health_call_success(route, client, valid_jwt, securitytrails_ping_ok, mock_request):
     with patch('requests.request') as get_mock:
         get_mock.return_value = securitytrails_ping_ok
-        response = client.post(route, headers=headers(valid_jwt))
+        mock_request.return_value = \
+            securitytrails_api_response_mock(payload=EXPECTED_RESPONSE_OF_JWKS_ENDPOINT)
+        response = client.post(route, headers=headers(valid_jwt()))
 
         assert response.status_code == HTTPStatus.OK
         assert response.json == {'data': {'status': 'ok'}}

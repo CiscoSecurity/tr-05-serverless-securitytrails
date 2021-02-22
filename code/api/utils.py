@@ -8,7 +8,6 @@ from requests.exceptions import ConnectionError, InvalidURL
 from api.errors import InvalidArgumentError, AuthorizationError
 from jwt import InvalidSignatureError, InvalidAudienceError, DecodeError
 
-
 NO_AUTH_HEADER = 'Authorization header is missing'
 WRONG_AUTH_TYPE = 'Wrong authorization type'
 WRONG_PAYLOAD_STRUCTURE = 'Wrong JWT payload structure'
@@ -18,8 +17,8 @@ KID_NOT_FOUND = 'kid from JWT header not found in API response'
 WRONG_KEY = ('Failed to decode JWT with provided key. '
              'Make sure domain in custom_jwks_host '
              'corresponds to your SecureX instance region.')
-JWK_HOST_MISSING = ('jwk_host is missing in JWT payload. Make sure '
-                    'custom_jwks_host field is present in module_type')
+JWKS_HOST_MISSING = ('jwks_host is missing in JWT payload. Make sure '
+                     'custom_jwks_host field is present in module_type')
 WRONG_JWKS_HOST = ('Wrong jwks_host in JWT payload. Make sure domain follows '
                    'the visibility.<region>.cisco.com structure')
 
@@ -81,7 +80,7 @@ def get_key() -> Union[str, Exception]:
 
     expected_errors = {
         KeyError: WRONG_PAYLOAD_STRUCTURE,
-        AssertionError: JWK_HOST_MISSING,
+        AssertionError: JWKS_HOST_MISSING,
         InvalidSignatureError: WRONG_KEY,
         DecodeError: WRONG_JWT_STRUCTURE,
         InvalidAudienceError: WRONG_AUDIENCE,

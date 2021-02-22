@@ -27,7 +27,7 @@
       "key": "custom_key",
       "type": "api_key",
       "label": "API Key",
-      "tooltip": "The urlscan.io API Key",
+      "tooltip": "The SecurityTrails API Key",
       "required": true
     },
     {

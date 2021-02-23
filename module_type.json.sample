@@ -3,7 +3,7 @@
   "default_name": "SecurityTrails",
   "short_description": "SecurityTrails can enrich your data with passive and historical data.",
   "description": "SecurityTrails specializes in providing DNS and domain intelligence. We are not only providing the most current passive data but also historical data. Therefore, the module lets you add context for your cyber investigations.\n\nSecurityTrails provides data about:\n- Domains\n- IP addresses",
-  "tips": "When configuring this integration, you must first gather some information from your SecurityTrails account, add the SecurityTrails Module to your organization. \n\n1. Log into SecurityTrails, click **Credentials**\n2. Copy the **API Key** into a file, or leave the tab open\n3. Complete the **Add New SecurityTrails Module** form:\n    - **Module Name** - Leave the default name or enter a name that is meaningful to you.\n   - Enter **API Key**\n4. Click **Save** to complete the SecurityTrails module configuration",
+  "tips": "When configuring this integration, you must first gather some information from your SecurityTrails account, add the SecurityTrails Module to your organization. \n\n1. Log into SecurityTrails, click **Credentials**\n2. Copy the **API Key** into a file, or leave the tab open\n3. Complete the **Add New SecurityTrails Module** form:\n    - **Module Name** - Leave the default name or enter a name that is meaningful to you.\n   - Enter **API Key**\n3. Click **Save** to complete the SecurityTrails module configuration",
   "external_references": [
     {
       "label": "Free Trial",

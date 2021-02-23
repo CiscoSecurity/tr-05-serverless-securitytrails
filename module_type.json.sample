@@ -1,0 +1,66 @@
+{
+  "title": "SecurityTrails",
+  "default_name": "SecurityTrails",
+  "short_description": "SecurityTrails can enrich your data with passive and historical data.",
+  "description": "SecurityTrails specializes in providing DNS and domain intelligence. We are not only providing the most current passive data but also historical data. Therefore, the module lets you add context for your cyber investigations.\n\nSecurityTrails provides data about:\n- Domains\n- IP addresses",
+  "tips": "When configuring this integration, you must first gather some information from your SecurityTrails account, add the SecurityTrails Module to your organization. \n\n1. Log into SecurityTrails, click **Credentials**\n2. Copy the **API Key** into a file, or leave the tab open\n3. Complete the **Add New SecurityTrails Module** form:\n    - **Module Name** - Leave the default name or enter a name that is meaningful to you. \n4. Click **Save** to complete the SecurityTrails module configuration",
+  "external_references": [
+    {
+      "label": "Free Trial",
+      "link": "https://securitytrails.com/app/signup?plan=api-0&utm_source=cisco&utm_medium=apisignup&utm_campaign=trm"
+    },
+    {
+      "label": "SecurityTrails",
+      "link": "https://securitytrails.com/?utm_source=cisco&utm_medium=apisignup&utm_campaign=trm"
+    },
+    {
+      "label": "FAQ",
+      "link": "https://securitytrails.com/corp/faq?utm_source=cisco&utm_medium=faq&utm_campaign=trm"
+    },
+    {
+      "label": "Contact/Support",
+      "link": "https://securitytrails.com/corp/contact?utm_source=cisco&utm_medium=contact&utm_campaign=trm"
+    }
+  ],
+  "configuration_spec": [
+    {
+      "key": "custom_key",
+      "type": "api_key",
+      "label": "API Key",
+      "tooltip": "The SecurityTrails API Key",
+      "required": true
+    },
+    {
+      "key": "custom_NUMBER_OF_PAGES",
+      "type": "integer",
+      "label": "Number of pages",
+      "tooltip": "Restricts the maximum number of `Sightings`",
+      "required": false
+    }
+  ],
+  "capabilities": [
+    {
+      "id": "health",
+      "description": "Check the health of the SecurityTrails API"
+    },
+    {
+      "id": "observe",
+      "description": "Query SecurityTrails for IP, IPv6, and Domain return Sighting"
+    },
+    {
+      "id": "refer",
+      "description": "Pivot on IP, IPv6, and Domain to SecurityTrails UI"
+    }
+  ],
+  "properties": {
+    "supported-apis": [
+      "health",
+      "observe/observables",
+      "refer/observables"
+    ],
+    "auth-type": "configuration-token",
+    "configuration-token-alg": "RS256",
+    "custom_jwks_host": "visibility.amp.cisco.com"
+  },
+  "logo": "data:image/png;base64,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"
+}

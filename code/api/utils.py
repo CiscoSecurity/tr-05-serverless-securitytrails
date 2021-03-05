@@ -26,7 +26,7 @@ WRONG_JWKS_HOST = ('Wrong jwks_host in JWT payload. Make sure domain follows '
 def set_number_of_pages(payload):
     try:
         number_of_pages = int(payload['NUMBER_OF_PAGES'])
-        assert number_of_pages > 0
+        assert number_of_pages >= 0
     except (KeyError, ValueError, AssertionError):
         number_of_pages = current_app.config['NUMBER_OF_PAGES_DEFAULT']
     current_app.config['NUMBER_OF_PAGES'] = number_of_pages

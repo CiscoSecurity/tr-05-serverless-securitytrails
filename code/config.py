@@ -12,3 +12,4 @@ class Config:
                   '<tr-integrations-support@cisco.com>')
 
     NUMBER_OF_PAGES_DEFAULT = 1
+    ALL_PAGES_DEFAULT = False

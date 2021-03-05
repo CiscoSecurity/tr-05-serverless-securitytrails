@@ -23,6 +23,14 @@ WRONG_JWKS_HOST = ('Wrong jwks_host in JWT payload. Make sure domain follows '
                    'the visibility.<region>.cisco.com structure')
 
 
+def set_all_pages_variable(payload):
+    try:
+        all_pages = str(payload['ALL_PAGES']).lower() != 'false'
+    except (KeyError, ValueError):
+        all_pages = current_app.config['ALL_PAGES_DEFAULT']
+    current_app.config['ALL_PAGES'] = all_pages
+
+
 def set_number_of_pages(payload):
     try:
         number_of_pages = int(payload['NUMBER_OF_PAGES'])
@@ -98,7 +106,10 @@ def get_key() -> Union[str, Exception]:
         payload = jwt.decode(
             token, key=key, algorithms=['RS256'], audience=[aud.rstrip('/')]
         )
+
+        set_all_pages_variable(payload)
         set_number_of_pages(payload)
+
         return payload['key']
     except tuple(expected_errors) as error:
         message = expected_errors[error.__class__]

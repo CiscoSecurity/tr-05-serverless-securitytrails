@@ -26,7 +26,7 @@ def observe_observables():
                                   key,
                                   current_app.config['USER_AGENT'],
                                   current_app.config['NUMBER_OF_PAGES'],
-                                  current_app.config['ALL_PAGES'])
+                                  current_app.config['GET_ALL_PAGES'])
     g.sightings = []
 
     try:

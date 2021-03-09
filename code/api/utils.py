@@ -25,10 +25,10 @@ WRONG_JWKS_HOST = ('Wrong jwks_host in JWT payload. Make sure domain follows '
 
 def set_all_pages_variable(payload):
     try:
-        all_pages = str(payload['ALL_PAGES']).lower() != 'false'
+        all_pages = str(payload['GET_ALL_PAGES']).lower() != 'false'
     except (KeyError, ValueError):
-        all_pages = current_app.config['ALL_PAGES_DEFAULT']
-    current_app.config['ALL_PAGES'] = all_pages
+        all_pages = current_app.config['GET_ALL_PAGES_DEFAULT']
+    current_app.config['GET_ALL_PAGES'] = all_pages
 
 
 def set_number_of_pages(payload):

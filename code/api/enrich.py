@@ -25,7 +25,8 @@ def observe_observables():
     client = SecurityTrailsClient(current_app.config['API_URL'],
                                   key,
                                   current_app.config['USER_AGENT'],
-                                  current_app.config['NUMBER_OF_PAGES'])
+                                  current_app.config['NUMBER_OF_PAGES'],
+                                  current_app.config['GET_ALL_PAGES'])
     g.sightings = []
 
     try:

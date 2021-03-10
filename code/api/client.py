@@ -43,7 +43,7 @@ def add_pause(func, *args, min_execution_time=1.1, **kwargs):
 class SecurityTrailsClient:
     OBSERVABLE_TO_FILTER_TYPE = {IP: 'ipv4', IPV6: 'ipv6'}
 
-    def __init__(self, base_url, api_key, user_agent, number_of_pages=1):
+    def __init__(self, base_url, api_key, user_agent, number_of_pages=1, all_pages=False):
         self.base_url = base_url
         self.headers = {
             'Accept': 'application/json',
@@ -51,9 +51,9 @@ class SecurityTrailsClient:
             'User-Agent': user_agent
         }
 
-        # Value 0 means that user need all pages.
+        # Value 0 in number_of_pages or True in all_pages parameter means that user need all pages.
         self.number_of_pages = (
-            sys.maxsize if number_of_pages == 0 else number_of_pages
+            sys.maxsize if number_of_pages == 0 or all_pages else number_of_pages
         )
 
     def ping(self):

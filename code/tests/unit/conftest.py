@@ -214,8 +214,7 @@ def authorization_errors_expected_payload(route,
                         'message': f'Authorization failed: '
                                    f'{message}',
                         'type': 'fatal'}
-                ],
-                'data': {}
+                ]
             },
             success_enrich_refer_domain_body
         )
@@ -233,8 +232,7 @@ def invalid_json_expected_payload(route):
                     'message':
                         'Invalid JSON payload received. {"0": {"value": '
                         '["Missing data for required field."]}}',
-                    'type': 'fatal'}],
-            'data': {}
+                    'type': 'fatal'}]
         }
     )
 
@@ -257,7 +255,6 @@ def unauthorized_creds_body():
 @fixture(scope='module')
 def sslerror_expected_payload():
     return {
-        'data': {},
         'errors': [
             {
                 'code': UNKNOWN,
@@ -279,8 +276,7 @@ def key_error_body():
                 'message': 'The data structure of SecurityTrails '
                            'has changed. The module is broken.'
             }
-        ],
-        'data': {}
+        ]
     }
 
 

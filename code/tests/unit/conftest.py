@@ -1,9 +1,8 @@
-from datetime import datetime
-from http import HTTPStatus
-from unittest.mock import MagicMock
+import jwt
 
-from authlib.jose import jwt
 from pytest import fixture
+from http import HTTPStatus
+from unittest.mock import MagicMock, patch
 
 from api.errors import (
     INVALID_ARGUMENT,
@@ -13,16 +12,12 @@ from api.errors import (
 
 from app import app
 
-
-@fixture(scope='session')
-def secret_key():
-    # Generate some string based on the current datetime.
-    return datetime.utcnow().isoformat()
+from tests.unit.mock_for_tests import PRIVATE_KEY
 
 
 @fixture(scope='session')
-def client(secret_key):
-    app.secret_key = secret_key
+def client():
+    app.rsa_private_key = PRIVATE_KEY
 
     app.testing = True
 
@@ -32,60 +27,44 @@ def client(secret_key):
 
 @fixture(scope='session')
 def valid_jwt(client):
-    header = {'alg': 'HS256'}
+    def _make_jwt(
+            key='some_key',
+            jwks_host='visibility.amp.cisco.com',
+            aud='http://localhost',
+            kid='02B1174234C29F8EFB69911438F597FF3FFEE6B7',
+            wrong_structure=False
+    ):
+        payload = {
+            'key': key,
+            'jwks_host': jwks_host,
+            'aud': aud,
+        }
 
-    payload = {'key': 'some_key'}
+        if wrong_structure:
+            payload.pop('key')
 
-    secret_key = client.application.secret_key
+        return jwt.encode(
+            payload, client.application.rsa_private_key, algorithm='RS256',
+            headers={
+                'kid': kid
+            }
+        )
 
-    return jwt.encode(header, payload, secret_key).decode('ascii')
-
-
-@fixture(scope='session')
-def wrong_payload_structure_jwt(client):
-    header = {'alg': 'HS256'}
-
-    payload = {'username': 'gdavoian', 'superuser': False}
-
-    secret_key = client.application.secret_key
-
-    return jwt.encode(header, payload, secret_key).decode('ascii')
-
-
-@fixture(scope='session')
-def invalid_jwt(valid_jwt):
-    header, payload, signature = valid_jwt.split('.')
-
-    def jwt_decode(s: str) -> dict:
-        from authlib.common.encoding import urlsafe_b64decode, json_loads
-        return json_loads(urlsafe_b64decode(s.encode('ascii')))
-
-    def jwt_encode(d: dict) -> str:
-        from authlib.common.encoding import json_dumps, urlsafe_b64encode
-        return urlsafe_b64encode(json_dumps(d).encode('ascii')).decode('ascii')
-
-    payload = jwt_decode(payload)
-
-    # Corrupt the valid JWT by tampering with its payload.
-    payload['superuser'] = True
-
-    payload = jwt_encode(payload)
-
-    return '.'.join([header, payload, signature])
+    return _make_jwt
 
 
-@fixture(scope='module')
-def wrong_jwt_structure():
-    return 'jwt_with_wrong_structure'
+@fixture(scope='function')
+def mock_request():
+    with patch('requests.get') as mock_request:
+        yield mock_request
 
 
-def securitytrails_api_response_mock(status_code, payload=None):
+def securitytrails_api_response_mock(status_code=HTTPStatus.OK, payload=None):
     mock_response = MagicMock()
 
-    mock_response.status = status_code
+    mock_response.status_code = status_code
     mock_response.ok = status_code == HTTPStatus.OK
 
-    payload = payload or {}
     mock_response.json = lambda: payload
 
     return mock_response
@@ -196,7 +175,7 @@ def securitytrails_domain_list_ok():
 
 
 @fixture(scope='session')
-def securitytrails_response_unauthorized_creds(secret_key):
+def securitytrails_response_unauthorized_creds():
     return securitytrails_api_error_mock(
         status_code=HTTPStatus.FORBIDDEN,
         text='{"message":"Invalid authentication credentials"}\n',
@@ -205,7 +184,7 @@ def securitytrails_response_unauthorized_creds(secret_key):
 
 
 @fixture(scope='session')
-def securitytrails_response_bad_request(secret_key):
+def securitytrails_response_bad_request():
     return securitytrails_api_error_mock(
         HTTPStatus.BAD_REQUEST,
         "The requested domain is invalid",
@@ -235,8 +214,7 @@ def authorization_errors_expected_payload(route,
                         'message': f'Authorization failed: '
                                    f'{message}',
                         'type': 'fatal'}
-                ],
-                'data': {}
+                ]
             },
             success_enrich_refer_domain_body
         )
@@ -254,8 +232,7 @@ def invalid_json_expected_payload(route):
                     'message':
                         'Invalid JSON payload received. {"0": {"value": '
                         '["Missing data for required field."]}}',
-                    'type': 'fatal'}],
-            'data': {}
+                    'type': 'fatal'}]
         }
     )
 
@@ -278,7 +255,6 @@ def unauthorized_creds_body():
 @fixture(scope='module')
 def sslerror_expected_payload():
     return {
-        'data': {},
         'errors': [
             {
                 'code': UNKNOWN,
@@ -300,8 +276,7 @@ def key_error_body():
                 'message': 'The data structure of SecurityTrails '
                            'has changed. The module is broken.'
             }
-        ],
-        'data': {}
+        ]
     }
 
 

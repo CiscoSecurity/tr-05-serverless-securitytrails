@@ -6,10 +6,6 @@
   "tips": "When configuring this integration, you must first gather some information from your SecurityTrails account, add the SecurityTrails Module to your organization. \n\n1. Log into SecurityTrails, click **Credentials**\n2. Copy the **API Key** into a file, or leave the tab open\n3. Complete the **Add New SecurityTrails Module** form:\n    - **Module Name** - Leave the default name or enter a name that is meaningful to you.\n   - Enter **API Key**\n    - **Number of pages** - Enter the number of pages to request from SecurityTrails API (a page returns 100 resolutions). Must be a non-negative integer. Defaults to `1` (if unset or incorrect).\n    - **Get all available pages** - Turn on to retrieve all available pages from SecurityTrails API. Default is False (if unset or incorrect).If there are too many results, timeout or other performance issues may occure.\n3. Click **Save** to complete the SecurityTrails module configuration",
   "external_references": [
     {
-      "label": "Free Trial",
-      "link": "https://securitytrails.com/app/signup?plan=api-0&utm_source=cisco&utm_medium=apisignup&utm_campaign=trm"
-    },
-    {
       "label": "SecurityTrails",
       "link": "https://securitytrails.com/?utm_source=cisco&utm_medium=apisignup&utm_campaign=trm"
     },

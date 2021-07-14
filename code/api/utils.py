@@ -1,12 +1,14 @@
-import jwt
 import json
-import requests
-
+from json.decoder import JSONDecodeError
 from typing import Union
+
+import jwt
+import requests
 from flask import request, current_app, jsonify, g
-from requests.exceptions import ConnectionError, InvalidURL
-from api.errors import InvalidArgumentError, AuthorizationError
 from jwt import InvalidSignatureError, InvalidAudienceError, DecodeError
+from requests.exceptions import ConnectionError, InvalidURL, HTTPError
+
+from api.errors import InvalidArgumentError, AuthorizationError
 
 NO_AUTH_HEADER = 'Authorization header is missing'
 WRONG_AUTH_TYPE = 'Wrong authorization type'
@@ -59,12 +61,15 @@ def get_auth_token():
 
 
 def get_public_key(jwks_host, token):
-    expected_errors = {
-        ConnectionError: WRONG_JWKS_HOST,
-        InvalidURL: WRONG_JWKS_HOST,
-    }
+    expected_errors = (
+        ConnectionError,
+        InvalidURL,
+        JSONDecodeError,
+        HTTPError,
+    )
     try:
         response = requests.get(f"https://{jwks_host}/.well-known/jwks")
+        response.raise_for_status()
         jwks = response.json()
 
         public_keys = {}
@@ -76,8 +81,8 @@ def get_public_key(jwks_host, token):
         kid = jwt.get_unverified_header(token)['kid']
         return public_keys.get(kid)
 
-    except tuple(expected_errors) as error:
-        raise AuthorizationError(expected_errors[error.__class__])
+    except expected_errors:
+        raise AuthorizationError(WRONG_JWKS_HOST)
 
 
 def get_key() -> Union[str, Exception]:
@@ -97,10 +102,9 @@ def get_key() -> Union[str, Exception]:
 
     token = get_auth_token()
     try:
-        jwks_host = jwt.decode(
-            token, options={'verify_signature': False}
-        ).get('jwks_host')
-        assert jwks_host
+        jwks_payload = jwt.decode(token, options={'verify_signature': False})
+        assert 'jwks_host' in jwks_payload
+        jwks_host = jwks_payload.get('jwks_host')
         key = get_public_key(jwks_host, token)
         aud = request.url_root
         payload = jwt.decode(

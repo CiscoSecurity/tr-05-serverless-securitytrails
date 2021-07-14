@@ -13,7 +13,8 @@ def health():
     client = SecurityTrailsClient(current_app.config['API_URL'],
                                   key,
                                   current_app.config['USER_AGENT'],
-                                  all_pages=current_app.config['GET_ALL_PAGES'])
+                                  all_pages=current_app.config['GET_ALL_PAGES']
+                                  )
 
     _ = client.ping()
 

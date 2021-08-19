@@ -19,10 +19,15 @@ easily packaged and deployed. This relay is now Cisco Hosted and no longer requi
 
 ## Step 3: Testing (Optional)
 
-If you want to test the application you have to install a couple of extra
-dependencies from the [test-requirements.txt](test-requirements.txt) file:
+Open the code folder in your terminal.
 ```
-pip install --upgrade --requirement requirements.txt
+cd code
+```
+
+If you want to test the application you have to install a couple of extra
+dependencies from the [Pipfile](code/Pipfile) file:
+```
+pip install --no-cache-dir --upgrade pipenv && pipenv install --dev
 ```
 
 You can perform two kinds of testing:

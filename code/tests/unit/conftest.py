@@ -196,9 +196,6 @@ def securitytrails_response_bad_request():
 
 
 def expected_payload(r, observe_body, refer_body=None):
-    if r.endswith('/deliberate/observables'):
-        return {'data': {}}
-
     if r.endswith('/refer/observables') and refer_body is not None:
         return refer_body
 

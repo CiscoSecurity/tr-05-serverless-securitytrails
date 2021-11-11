@@ -9,7 +9,6 @@ from ..mock_for_tests import EXPECTED_RESPONSE_OF_JWKS_ENDPOINT
 
 
 def routes():
-    yield '/deliberate/observables'
     yield '/observe/observables'
     yield '/refer/observables'
 

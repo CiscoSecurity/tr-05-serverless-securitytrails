@@ -4,7 +4,7 @@ import requests
 
 from os import cpu_count
 from http import HTTPStatus
-from requests.exceptions import SSLError
+from requests.exceptions import SSLError, InvalidHeader
 from api.utils import join_url, add_error
 from concurrent.futures.thread import ThreadPoolExecutor
 
@@ -30,6 +30,8 @@ ST_OBSERVABLE_TYPES = {
     IPV6: 'IPv6',
     DOMAIN: 'domain',
 }
+
+INVALID_CREDENTIALS = 'Invalid authentication credentials'
 
 
 def add_pause(func, *args, min_execution_time=1.1, **kwargs):
@@ -169,6 +171,8 @@ class SecurityTrailsClient:
             )
         except SSLError as error:
             raise SecurityTrailsSSLError(error)
+        except (UnicodeEncodeError, InvalidHeader):
+            raise AuthorizationError(INVALID_CREDENTIALS)
 
         # catch wrong API key
         if response.status_code == HTTPStatus.FORBIDDEN:
